@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Saisie — Suivi migraines</title>
+<title>Saisie — Suivi RGO / EoE</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -19,11 +19,13 @@ body{background:#0f1117;color:#fff;font-family:'DM Sans',sans-serif;min-height:1
 .question span{color:#82B2C0;}
 .sublabel{font-size:12px;color:#555;margin-bottom:8px;}
 input[type="time"],input[type="date"],input[type="number"],input[type="text"]{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 14px;font-size:15px;color:#fff;width:100%;outline:none;font-family:'DM Sans',sans-serif;-webkit-appearance:none;}
-input:focus{border-color:#82B2C066;}
+select{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 14px;font-size:15px;color:#fff;width:100%;outline:none;font-family:'DM Sans',sans-serif;-webkit-appearance:none;}
+input:focus,select:focus{border-color:#82B2C066;}
+input[type="number"]{-moz-appearance:textfield;}
+input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .btn-group{display:grid;gap:8px;}
 .btn-group.cols2{grid-template-columns:1fr 1fr;}
-.btn-group.cols3{grid-template-columns:1fr 1fr 1fr;}
-.btn-group.cols5{grid-template-columns:repeat(5,1fr);}
 .btn-opt{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 8px;font-size:12px;color:#aaa;cursor:pointer;text-align:center;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
 .btn-opt.selected{background:#0a2535;border-color:#82B2C0;color:#C3DEDD;}
 .checkbox-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
@@ -36,36 +38,35 @@ input:focus{border-color:#82B2C066;}
 .checkbox-item.checked .checkbox-check{display:block;}
 .checkbox-label{font-size:13px;color:#aaa;}
 .checkbox-item.checked .checkbox-label{color:#C3DEDD;}
+.range-wrap{display:flex;align-items:center;gap:12px;}
+input[type="range"]{flex:1;-webkit-appearance:none;height:4px;background:#1e2235;border-radius:2px;outline:none;}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:#82B2C0;cursor:pointer;}
+.range-val{font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#82B2C0;min-width:34px;text-align:right;}
 .submit-btn{background:#82B2C0;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:500;color:#0d1629;width:100%;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;transition:background 0.2s;}
 .submit-btn:hover{background:#6fa0af;}
 .submit-btn:disabled{background:#333;color:#666;cursor:not-allowed;}
-.section-title{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:0.08em;margin:20px 0 8px;padding-left:2px;}
-.mode-choice{display:grid;gap:12px;margin-bottom:8px;}
-.mode-card{background:#1a1e2e;border:0.5px solid #ffffff10;border-radius:14px;padding:20px;cursor:pointer;transition:all 0.15s;}
-.mode-card:hover{border-color:#82B2C066;}
-.mode-card-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:4px;}
-.mode-card-sub{font-size:12px;color:#666;line-height:1.5;}
-.episode-item{background:#1a1e2e;border:0.5px solid #ffffff10;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all 0.15s;}
-.episode-item:hover{border-color:#82B2C066;}
-.episode-info{font-size:13px;color:#ccc;}
-.episode-sub{font-size:11px;color:#555;margin-top:2px;}
-.badge{font-size:10px;padding:3px 8px;border-radius:6px;font-weight:500;}
-.badge.open{background:#0f2535;color:#82B2C0;}
-.badge.closed{background:#1e2235;color:#555;}
 .saved-flag{font-size:11px;color:#8FBF7A;margin-top:6px;display:none;}
 .saved-flag.show{display:block;}
 .error-box{background:#2a1010;border:0.5px solid #D85A3044;border-radius:10px;padding:12px 14px;font-size:13px;color:#F09595;margin-top:8px;display:none;}
 .error-box.show{display:block;}
-.loading{text-align:center;padding:40px 0;color:#555;font-size:13px;}
-.selected-episode-banner{background:#0d1629;border-radius:12px;padding:14px 16px;margin-bottom:12px;font-size:13px;color:#82B2C0;}
-.filled-tag{font-size:10px;color:#8FBF7A;margin-left:6px;}
+.type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+.type-btn{border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;border:0.5px solid #ffffff10;background:#1a1e2e;transition:all 0.15s;}
+.type-btn .tt{font-size:15px;font-weight:500;color:#fff;}
+.type-btn .ts{font-size:11px;color:#666;margin-top:3px;}
+.type-btn.active{background:#0a2535;border-color:#82B2C0;}
+.type-btn.active .tt{color:#C3DEDD;}
+#eoe-fields,#rgo-fields{display:none;}
+.success-box{background:#0d1629;border:0.5px solid #8FBF7A44;border-radius:12px;padding:20px;text-align:center;display:none;}
+.success-box.show{display:block;}
+.success-title{font-size:16px;font-weight:500;color:#8FBF7A;margin-bottom:6px;}
+.success-sub{font-size:13px;color:#82B2C0aa;}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <a href="index.html" class="back-link">← Retour au dashboard</a>
-  <div class="header-title" id="page-title">Suivi migraines</div>
+  <a href="index_gastro.html" class="back-link">← Retour au dashboard</a>
+  <div class="header-title">Suivi RGO / EoE</div>
   <div class="header-sub" id="page-sub"></div>
 </div>
 
@@ -73,469 +74,29 @@ input:focus{border-color:#82B2C066;}
 
 <script>
 /* ===================== CONFIGURATION ===================== */
-const WORKER_URL = 'https://suivi-migraines.dashboard-suivi.workers.dev'; // Worker Cloudflare (lecture)
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxQY5pnlJPYTXrMm6T7wl87SshdAmJwygaYkMiisANG4DrhOk_cuQ7V_2B6gJ894ltskw/exec'; // Apps Script (écriture)
+// À remplacer par l'URL de la Web App Apps Script déployée POUR CE classeur
+// (script distinct de celui du suivi migraines — voir Code.gs fourni séparément)
+const SCRIPT_URL = 'REMPLACER_PAR_URL_APPS_SCRIPT_GASTRO';
 
-/* Listes de référence (issues de l'onglet "Liste référence") */
-const MEDICAMENTS = ['Doliprane 500mg','Doliprane 1000mg','Ipraféine 500mg','Tramadol 50mg','Ibuprofène','Dalféine','Aucun'];
-const DECLENCHEURS = ['Fatigue','Sur-stimulation','Écran prolongé','Lunettes non portées','Déshydratation','Lumière vive','Bruits forts','Cycle menstruel','Météo','Effort physique','Traitement MPH','Inconnu','Aucun'];
-const LOCALISATIONS = ['Unilatérale (droit)','Unilatérale (gauche)','Bilatérale','Frontale','Temporale','Orbitale','Diffuse'];
-const EFFICACITE_CATEGORIES = [
-  "Excellente - 100% douleur disparue en < 1h",
-  "Bonne - 100% douleur disparue en 1 à 2h",
-  "Partielle - entre 50 et 100% douleur disparue en 0 à 2h",
-  "Nulle - pas d'amélioration significative après 2 à 3h"
-];
-const EFFICACITE_PCT = ['0%','25%','50%','75%','100%'];
-const DELAI_EFFET = [{l:'0,5h',v:0.5},{l:'1h',v:1},{l:'1,5h',v:1.5},{l:'2h',v:2},{l:'2,5h',v:2.5},{l:'3h et +',v:3}];
-/* Échelle d'intensité 1 à 5 — libellés à ajuster si besoin, aucun épisode à 5 observé pour l'instant */
-const INTENSITE = [{v:1,l:'1 · Légère'},{v:2,l:'2 · Modérée'},{v:3,l:'3 · Forte'},{v:4,l:'4 · Sévère'},{v:5,l:'5 · Extrême'}];
+const SYMPTOMES_EOE = ['Sensation de nourriture bloquée','Douleur','Brûlure','Toux ou étouffement'];
+const GAVISCON_EFFICACITE = ['Bon','Partiel','Insuffisant','Insatisfaisant'];
+const TYPE_DOULEUR = ['Constante','Pics','Constante avec pics','NA'];
+const GENE_DEGLUTITION = ['Aucune','Légère','Modérée','Sévère'];
 
-const SYMPTOMES_FIELDS = [
-  {key:'Sens._lumière', label:'Sensibilité à la lumière'},
-  {key:'Sens._bruit', label:'Sensibilité au bruit'},
-  {key:'Sens._vestib', label:'Sensibilité vestibulaire'},
-  {key:'Fatigue', label:'Fatigue'},
-  {key:'Auras', label:'Aura'},
-  {key:'Vertiges', label:'Vertiges'},
-  {key:'Acc._difficile', label:'Accommodation difficile'}
-];
-const SOLUTIONS_FIELDS = [
-  {key:'Lum._reduite', label:'Lumière réduite'},
-  {key:'Isolement_noir', label:'Isolement dans le noir'},
-  {key:'Limit._ecrans', label:'Limitation des écrans'},
-  {key:'Sortie_ext', label:'Sortie extérieure'},
-  {key:'Sommeil', label:'Sommeil'},
-  {key:'Douche', label:'Douche'},
-  {key:'Port_lunettes', label:'Port des lunettes'},
-  {key:'Medicament', label:'Médicament pris'}
-];
+let currentType = 'RGO';
+let symptEoeState = [];
 
-/* ===================== STATE ===================== */
-let view = 'menu'; // 'menu' | 'nouveau' | 'liste' | 'completer'
-let episodesCache = null;
-let selectedEpisode = null; // objet {suivi, symptomes, solutions}
-let newEpisodeState = { localisation: [], declencheurs: [], symptomes: {} };
+function todayInput(){ return new Date().toISOString().slice(0,10); }
+function nowStr(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
+function dateInputToFr(v){ if(!v) return ''; const p=v.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
 
-/* ===================== HELPERS ===================== */
-function todayStr(){
-  const d = new Date();
-  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
-}
-function nowStr(){
-  const d = new Date();
-  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-}
-function dateInputToFr(v){ // "2026-08-03" -> "03/08/2026"
-  if(!v) return '';
-  const p = v.split('-'); return p[2]+'/'+p[1]+'/'+p[0];
-}
-function frToDateInput(v){ // "03/08/2026" -> "2026-08-03"
-  if(!v) return '';
-  const p = String(v).split('/'); if(p.length<3) return '';
-  return p[2]+'-'+p[1]+'-'+p[0];
-}
-function el(html){
-  const t = document.createElement('template');
-  t.innerHTML = html.trim();
-  if(t.content.children.length > 1){
-    // Un template avec plusieurs éléments racines : on les regroupe dans un wrapper
-    // "transparent" (display:contents) pour ne perdre aucun élément ni casser la mise en page.
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'contents';
-    while(t.content.firstChild) wrapper.appendChild(t.content.firstChild);
-    return wrapper;
-  }
-  return t.content.firstChild;
-}
-
-async function fetchSheet(sheetName){
-  const r = await fetch(WORKER_URL + '?sheet=' + encodeURIComponent(sheetName));
-  if(!r.ok) throw new Error('Erreur ' + r.status);
-  const d = await r.json();
-  if(d.error) throw new Error(d.error.message || 'Erreur de lecture');
-  if(!d.values || d.values.length < 2) return [];
-  const [headers, ...rows] = d.values;
-  return rows.map(row => { const o = {}; headers.forEach((h,i)=>o[h.trim()]=row[i]||''); return o; });
-}
-
-async function loadEpisodes(){
-  const [suivi, symptomes, solutions] = await Promise.all([
-    fetchSheet('Suivi'), fetchSheet('Symptômes'), fetchSheet('Solutions')
-  ]);
-  const symById = {}; symptomes.forEach(r => symById[r.ID_episode] = r);
-  const solById = {}; solutions.forEach(r => solById[r.ID_episode] = r);
-  return suivi
-    .filter(r => r.ID_episode !== '')
-    .map(r => ({ suivi: r, symptomes: symById[r.ID_episode] || {}, solutions: solById[r.ID_episode] || {} }))
-    .sort((a,b) => Number(b.suivi.ID_episode) - Number(a.suivi.ID_episode));
-}
-
-async function postAction(payload){
-  const r = await fetch(SCRIPT_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'text/plain;charset=utf-8'}, // évite le preflight CORS qu'Apps Script ne gère pas ; le contenu reste du JSON (parsé côté serveur)
-    body: JSON.stringify(payload)
-  });
-  const d = await r.json();
-  if(!d.ok) throw new Error(d.error || 'Erreur inconnue');
-  return d.result;
-}
-
-/* ===================== RENDER : MENU ===================== */
-function renderMenu(){
-  document.getElementById('page-title').textContent = 'Suivi migraines';
-  document.getElementById('page-sub').textContent = '';
-  const root = document.getElementById('root');
-  root.innerHTML = '';
-  root.appendChild(el(`
-    <div class="mode-choice">
-      <div class="mode-card" id="btn-nouveau">
-        <div class="mode-card-title">🩹 Nouvel épisode</div>
-        <div class="mode-card-sub">Une migraine commence maintenant — tu notes juste l'heure de début (et éventuellement quelques symptômes tout de suite).</div>
-      </div>
-      <div class="mode-card" id="btn-completer">
-        <div class="mode-card-title">✏️ Compléter un épisode</div>
-        <div class="mode-card-sub">Ajouter une prise, des symptômes, des solutions ou clôturer un épisode déjà ouvert.</div>
-      </div>
-    </div>
-  `));
-  document.getElementById('btn-nouveau').onclick = () => { view = 'nouveau'; renderNouveau(); };
-  document.getElementById('btn-completer').onclick = () => { view = 'liste'; renderListe(); };
-}
-
-/* ===================== RENDER : NOUVEL ÉPISODE ===================== */
-function renderNouveau(){
-  document.getElementById('page-title').textContent = 'Nouvel épisode';
-  document.getElementById('page-sub').textContent = todayStr();
-  const root = document.getElementById('root');
-  root.innerHTML = '';
-  root.appendChild(el('<a href="#" id="back-menu" class="back-link">← Retour</a>'));
-  document.getElementById('back-menu').onclick = (e)=>{e.preventDefault(); view='menu'; renderMenu();};
-
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Date de début</div>
-      <input type="date" id="f_date_debut" value="${new Date().toISOString().slice(0,10)}"/>
-    </div>
-  `));
-
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Heure de début</div>
-      <input type="time" id="f_heure_debut" value="${nowStr()}"/>
-    </div>
-  `));
-
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Localisation de la douleur <span>(optionnel, coche ce que tu sais déjà)</span></div>
-      <div class="checkbox-grid" id="grid-localisation"></div>
-    </div>
-  `));
-  buildCheckboxGrid('grid-localisation', LOCALISATIONS, newEpisodeState.localisation);
-
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Facteur déclencheur principal <span>(optionnel)</span></div>
-      <div class="checkbox-grid" id="grid-declencheurs"></div>
-    </div>
-  `));
-  buildCheckboxGrid('grid-declencheurs', DECLENCHEURS, newEpisodeState.declencheurs);
-
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Symptômes déjà présents <span>(optionnel)</span></div>
-      <div class="checkbox-grid" id="grid-symptomes-new"></div>
-    </div>
-  `));
-  buildSymptomesGrid('grid-symptomes-new', newEpisodeState.symptomes);
-
-  const btn = el('<button class="submit-btn">Ouvrir cet épisode</button>');
-  const errBox = el('<div class="error-box"></div>');
-  root.appendChild(btn); root.appendChild(errBox);
-
-  btn.onclick = async () => {
-    btn.disabled = true; btn.textContent = 'Enregistrement…';
-    errBox.classList.remove('show');
-    try{
-      const dateDebut = document.getElementById('f_date_debut').value;
-      const heure = document.getElementById('f_heure_debut').value;
-      const suivi = {
-        Date_debut: dateInputToFr(dateDebut),
-        Heure_debut: heure
-      };
-      if(newEpisodeState.localisation.length) suivi['Localisation_douleur'] = newEpisodeState.localisation.join(', ');
-      if(newEpisodeState.declencheurs.length) suivi['Facteur_declencheur_princ.'] = newEpisodeState.declencheurs.join(', ');
-
-      const symptomes = {};
-      SYMPTOMES_FIELDS.forEach(f => symptomes[f.key] = !!newEpisodeState.symptomes[f.key]);
-
-      const result = await postAction({ action:'create', suivi, symptomes });
-      episodesCache = null; // invalider le cache de liste
-      selectedEpisode = { suivi: Object.assign({ID_episode: result.id_episode}, suivi), symptomes, solutions: {} };
-      view = 'completer';
-      renderCompleter(true);
-    } catch(err){
-      errBox.textContent = 'Erreur : ' + err.message;
-      errBox.classList.add('show');
-      btn.disabled = false; btn.textContent = 'Ouvrir cet épisode';
-    }
-  };
-}
-
-function buildCheckboxGrid(containerId, values, stateArray){
-  const grid = document.getElementById(containerId);
-  values.forEach(v => {
-    const checked = stateArray.includes(v);
-    const item = el(`
-      <label class="checkbox-item ${checked?'checked':''}">
-        <input type="checkbox" value="${v}" ${checked?'checked':''}/>
-        <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
-        <span class="checkbox-label">${v}</span>
-      </label>
-    `);
-    item.onclick = () => {
-      setTimeout(()=>{
-        const input = item.querySelector('input');
-        item.classList.toggle('checked', input.checked);
-        const idx = stateArray.indexOf(v);
-        if(input.checked && idx === -1) stateArray.push(v);
-        if(!input.checked && idx !== -1) stateArray.splice(idx,1);
-      },0);
-    };
-    grid.appendChild(item);
-  });
-}
-
-function buildSymptomesGrid(containerId, stateObj){
-  const grid = document.getElementById(containerId);
-  SYMPTOMES_FIELDS.forEach(f => {
-    const checked = !!stateObj[f.key];
-    const item = el(`
-      <label class="checkbox-item ${checked?'checked':''}">
-        <input type="checkbox" ${checked?'checked':''}/>
-        <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
-        <span class="checkbox-label">${f.label}</span>
-      </label>
-    `);
-    item.onclick = () => {
-      setTimeout(()=>{
-        const input = item.querySelector('input');
-        item.classList.toggle('checked', input.checked);
-        stateObj[f.key] = input.checked;
-      },0);
-    };
-    grid.appendChild(item);
-  });
-}
-
-/* ===================== RENDER : LISTE DES ÉPISODES ===================== */
-async function renderListe(){
-  document.getElementById('page-title').textContent = 'Compléter un épisode';
-  document.getElementById('page-sub').textContent = '';
-  const root = document.getElementById('root');
-  root.innerHTML = '';
-  root.appendChild(el('<a href="#" id="back-menu" class="back-link">← Retour</a>'));
-  document.getElementById('back-menu').onclick = (e)=>{e.preventDefault(); view='menu'; renderMenu();};
-  root.appendChild(el('<div class="loading">Chargement des épisodes…</div>'));
-
-  try{
-    if(!episodesCache) episodesCache = await loadEpisodes();
-    root.innerHTML = '';
-    root.appendChild(el('<a href="#" id="back-menu2" class="back-link">← Retour</a>'));
-    document.getElementById('back-menu2').onclick = (e)=>{e.preventDefault(); view='menu'; renderMenu();};
-
-    if(!episodesCache.length){
-      root.appendChild(el('<div class="loading">Aucun épisode enregistré pour l\'instant.</div>'));
-      return;
-    }
-
-    episodesCache.forEach(ep => {
-      const isOpen = !ep.suivi.Date_fin;
-      const item = el(`
-        <div class="episode-item">
-          <div>
-            <div class="episode-info">Épisode #${ep.suivi.ID_episode} — ${ep.suivi.Date_debut} ${ep.suivi.Heure_debut}</div>
-            <div class="episode-sub">${ep.suivi.Localisation_douleur || 'Localisation non précisée'}</div>
-          </div>
-          <span class="badge ${isOpen?'open':'closed'}">${isOpen?'En cours':'Clôturé'}</span>
-        </div>
-      `);
-      item.onclick = () => { selectedEpisode = ep; view = 'completer'; renderCompleter(false); };
-      root.appendChild(item);
-    });
-  } catch(err){
-    root.innerHTML = '';
-    root.appendChild(el('<a href="#" id="back-menu3" class="back-link">← Retour</a>'));
-    document.getElementById('back-menu3').onclick = (e)=>{e.preventDefault(); view='menu'; renderMenu();};
-    root.appendChild(el('<div class="error-box show">Erreur de chargement : '+err.message+'</div>'));
-  }
-}
-
-/* ===================== RENDER : COMPLÉTER UN ÉPISODE ===================== */
-function renderCompleter(justCreated){
-  const ep = selectedEpisode;
-  document.getElementById('page-title').textContent = 'Épisode #' + ep.suivi.ID_episode;
-  document.getElementById('page-sub').textContent = ep.suivi.Date_debut + ' ' + ep.suivi.Heure_debut;
-  const root = document.getElementById('root');
-  root.innerHTML = '';
-  root.appendChild(el('<a href="#" id="back-liste" class="back-link">← ' + (justCreated ? 'Retour au menu' : 'Retour à la liste') + '</a>'));
-  document.getElementById('back-liste').onclick = (e)=>{
-    e.preventDefault();
-    if(justCreated){ view='menu'; renderMenu(); } else { view='liste'; renderListe(); }
-  };
-
-  if(justCreated){
-    root.appendChild(el('<div class="selected-episode-banner">Épisode ouvert. Tu peux continuer à le compléter maintenant, ou revenir plus tard via "Compléter un épisode".</div>'));
-  }
-
-  renderSectionContexte(root, ep);
-  renderSectionSymptomes(root, ep);
-  renderSectionPrise(root, ep, 1);
-  renderSectionPrise(root, ep, 2);
-  renderSectionSolutions(root, ep);
-  renderSectionCloture(root, ep);
-}
-
-function sectionSaveButton(container, onSave){
-  const saved = el('<div class="saved-flag">✓ Enregistré</div>');
-  const err = el('<div class="error-box"></div>');
-  const btn = el('<button class="submit-btn">Enregistrer</button>');
-  btn.onclick = async () => {
-    btn.disabled = true; btn.textContent = 'Enregistrement…';
-    saved.classList.remove('show'); err.classList.remove('show');
-    try{
-      await onSave();
-      saved.classList.add('show');
-    }catch(e){
-      err.textContent = 'Erreur : ' + e.message;
-      err.classList.add('show');
-    }
-    btn.disabled = false; btn.textContent = 'Enregistrer';
-  };
-  container.appendChild(btn); container.appendChild(saved); container.appendChild(err);
-}
-
-function renderSectionContexte(root, ep){
-  root.appendChild(el('<div class="section-title">Contexte de l\'épisode</div>'));
-  const card = el('<div class="card"></div>');
-  card.appendChild(el('<div class="question">Localisation de la douleur</div>'));
-  const gridLocId = 'grid-loc-'+ep.suivi.ID_episode;
-  card.appendChild(el(`<div class="checkbox-grid" id="${gridLocId}"></div>`));
-  const currentLoc = (ep.suivi.Localisation_douleur || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const stateLoc = currentLoc.slice();
-
-  card.appendChild(el('<div class="question" style="margin-top:16px;">Facteur déclencheur</div>'));
-  const gridDeclId = 'grid-decl-'+ep.suivi.ID_episode;
-  card.appendChild(el(`<div class="checkbox-grid" id="${gridDeclId}"></div>`));
-  const currentDecl = (ep.suivi['Facteur_declencheur_princ.'] || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const stateDecl = currentDecl.slice();
-
-  root.appendChild(card);
-  buildCheckboxGrid(gridLocId, LOCALISATIONS, stateLoc);
-  buildCheckboxGrid(gridDeclId, DECLENCHEURS, stateDecl);
-
-  sectionSaveButton(card, async () => {
-    const suivi = {};
-    if(stateLoc.length) suivi['Localisation_douleur'] = stateLoc.join(', ');
-    if(stateDecl.length) suivi['Facteur_declencheur_princ.'] = stateDecl.join(', ');
-    if(!Object.keys(suivi).length) throw new Error('Sélectionne au moins un élément avant d\'enregistrer.');
-    await postAction({ action:'update', id_episode: ep.suivi.ID_episode, suivi });
-  });
-}
-
-function renderSectionSymptomes(root, ep){
-  root.appendChild(el('<div class="section-title">Symptômes associés</div>'));
-  const card = el('<div class="card"></div>');
-  const gridId = 'grid-symp-'+ep.suivi.ID_episode;
-  card.appendChild(el(`<div class="checkbox-grid" id="${gridId}"></div>`));
-  root.appendChild(card);
-  const stateObj = {};
-  SYMPTOMES_FIELDS.forEach(f => stateObj[f.key] = ep.symptomes[f.key] === true || ep.symptomes[f.key] === 'TRUE' || ep.symptomes[f.key] === 'Vrai');
-  buildSymptomesGrid(gridId, stateObj);
-
-  sectionSaveButton(card, async () => {
-    const payload = {};
-    SYMPTOMES_FIELDS.forEach(f => payload[f.key] = !!stateObj[f.key]);
-    await postAction({ action:'update', id_episode: ep.suivi.ID_episode, symptomes: payload });
-  });
-}
-
-function renderSectionPrise(root, ep, n){
-  const pfx = 'Prise_'+n+'_';
-  const already = ep.suivi[pfx+'date'];
-  root.appendChild(el(`<div class="section-title">Prise ${n} ${already?'<span class=\"filled-tag\">déjà renseignée — modifiable</span>':''}</div>`));
-  const card = el('<div class="card"></div>');
-
-  const dateVal = frToDateInput(ep.suivi[pfx+'date']) || new Date().toISOString().slice(0,10);
-  const heureVal = ep.suivi[pfx+'heure'] || '';
-  card.appendChild(el(`
-    <div class="question">Date et heure de la prise</div>
-    <div style="display:flex;gap:8px;margin-bottom:14px;">
-      <input type="date" id="p${n}_date" value="${dateVal}" style="flex:1;"/>
-      <input type="time" id="p${n}_heure" value="${heureVal}" style="flex:1;"/>
-    </div>
-  `));
-
-  card.appendChild(el(`<div class="question">Médicament(s)</div>`));
-  const medGridId = 'p'+n+'_med';
-  card.appendChild(el(`<div class="checkbox-grid" id="${medGridId}"></div>`));
-  const currentMed = (ep.suivi[pfx+'medicament'] || '').split(',').map(s=>s.trim()).filter(Boolean);
-  const stateMed = currentMed.slice();
-
-  card.appendChild(el(`<div class="question" style="margin-top:16px;">Efficacité ressentie</div>`));
-  const effGridId = 'p'+n+'_eff';
-  card.appendChild(el(`<div class="btn-group cols5" id="${effGridId}"></div>`));
-
-  card.appendChild(el(`<div class="question" style="margin-top:16px;">Délai avant effet</div>`));
-  const delaiGridId = 'p'+n+'_delai';
-  card.appendChild(el(`<div class="btn-group cols3" id="${delaiGridId}"></div>`));
-
-  card.appendChild(el(`<div class="question" style="margin-top:16px;">Catégorie d'efficacité</div>`));
-  const catGridId = 'p'+n+'_cat';
-  card.appendChild(el(`<div class="btn-group" id="${catGridId}" style="display:grid;gap:8px;"></div>`));
-
-  card.appendChild(el(`<div class="question" style="margin-top:16px;">Intensité maximale de la douleur</div>`));
-  const intGridId = 'p'+n+'_int';
-  card.appendChild(el(`<div class="btn-group" id="${intGridId}" style="display:grid;gap:8px;"></div>`));
-
-  root.appendChild(card);
-  buildCheckboxGrid(medGridId, MEDICAMENTS, stateMed);
-
-  let selEff = ep.suivi[pfx+'efficacite'] || null;
-  buildButtonSelect(effGridId, EFFICACITE_PCT, selEff, v => selEff = v);
-
-  let selDelai = ep.suivi[pfx+'delais_effet'] !== '' ? Number(ep.suivi[pfx+'delais_effet']) : null;
-  buildButtonSelect(delaiGridId, DELAI_EFFET.map(d=>d.l), DELAI_EFFET.find(d=>d.v===selDelai)?.l, l => selDelai = DELAI_EFFET.find(d=>d.l===l).v);
-
-  let selCat = ep.suivi['Effiicacite_'+n] || null;
-  buildButtonSelect(catGridId, EFFICACITE_CATEGORIES, selCat, v => selCat = v, true);
-
-  let selInt = ep.suivi['Intensite_max_'+n] !== '' ? Number(ep.suivi['Intensite_max_'+n]) : null;
-  buildButtonSelect(intGridId, INTENSITE.map(i=>i.l), INTENSITE.find(i=>i.v===selInt)?.l, l => selInt = INTENSITE.find(i=>i.l===l).v, true);
-
-  sectionSaveButton(card, async () => {
-    const suivi = {};
-    const dateV = document.getElementById('p'+n+'_date').value;
-    const heureV = document.getElementById('p'+n+'_heure').value;
-    if(dateV) suivi[pfx+'date'] = dateInputToFr(dateV);
-    if(heureV) suivi[pfx+'heure'] = heureV;
-    if(stateMed.length) suivi[pfx+'medicament'] = stateMed.join(', ');
-    if(selEff !== null) suivi[pfx+'efficacite'] = selEff;
-    if(selDelai !== null) suivi[pfx+'delais_effet'] = selDelai;
-    if(selCat !== null) suivi['Effiicacite_'+n] = selCat;
-    if(selInt !== null) suivi['Intensite_max_'+n] = selInt;
-    if(!Object.keys(suivi).length) throw new Error('Renseigne au moins un champ avant d\'enregistrer.');
-    await postAction({ action:'update', id_episode: ep.suivi.ID_episode, suivi });
-  });
-}
-
-function buildButtonSelect(containerId, options, current, onChange, stacked){
+function buildButtonSelect(containerId, options, current, onChange){
   const container = document.getElementById(containerId);
+  container.innerHTML = '';
   options.forEach(opt => {
     const isSel = opt === current;
-    const btn = el(`<div class="btn-opt ${isSel?'selected':''}" style="${stacked?'text-align:left;':''}">${opt}</div>`);
+    const btn = el(`<div class="btn-opt ${isSel?'selected':''}">${opt}</div>`);
     btn.onclick = () => {
       container.querySelectorAll('.btn-opt').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
@@ -545,69 +106,234 @@ function buildButtonSelect(containerId, options, current, onChange, stacked){
   });
 }
 
-function renderSectionSolutions(root, ep){
-  root.appendChild(el('<div class="section-title">Solutions mises en place</div>'));
-  const card = el('<div class="card"></div>');
-  const gridId = 'grid-sol-'+ep.suivi.ID_episode;
-  card.appendChild(el(`<div class="checkbox-grid" id="${gridId}"></div>`));
-  root.appendChild(card);
-  const stateObj = {};
-  SOLUTIONS_FIELDS.forEach(f => stateObj[f.key] = ep.solutions[f.key] === true || ep.solutions[f.key] === 'TRUE' || ep.solutions[f.key] === 'Vrai');
-  const grid = document.getElementById(gridId);
-  SOLUTIONS_FIELDS.forEach(f => {
-    const checked = !!stateObj[f.key];
-    const item = el(`
-      <label class="checkbox-item ${checked?'checked':''}">
-        <input type="checkbox" ${checked?'checked':''}/>
-        <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
-        <span class="checkbox-label">${f.label}</span>
-      </label>
-    `);
-    item.onclick = () => {
-      setTimeout(()=>{
-        const input = item.querySelector('input');
-        item.classList.toggle('checked', input.checked);
-        stateObj[f.key] = input.checked;
-      },0);
-    };
-    grid.appendChild(item);
-  });
+function render(){
+  document.getElementById('page-sub').textContent = "Nouvel épisode — " + new Date().toLocaleDateString('fr-FR');
+  const root = document.getElementById('root');
+  root.innerHTML = '';
 
-  sectionSaveButton(card, async () => {
-    const payload = {};
-    SOLUTIONS_FIELDS.forEach(f => payload[f.key] = !!stateObj[f.key]);
-    await postAction({ action:'update', id_episode: ep.suivi.ID_episode, solutions: payload });
-  });
-}
+  // Sélecteur de type
+  const toggle = el(`
+    <div class="type-toggle">
+      <div class="type-btn ${currentType==='RGO'?'active':''}" id="type-rgo-btn">
+        <div class="tt">Remontée acide</div><div class="ts">RGO</div>
+      </div>
+      <div class="type-btn ${currentType==='EoE'?'active':''}" id="type-eoe-btn">
+        <div class="tt">Crise de déglutition</div><div class="ts">EoE</div>
+      </div>
+    </div>
+  `);
+  root.appendChild(toggle);
+  toggle.querySelector('#type-rgo-btn').onclick = () => { currentType='RGO'; render(); };
+  toggle.querySelector('#type-eoe-btn').onclick = () => { currentType='EoE'; render(); };
 
-function renderSectionCloture(root, ep){
-  root.appendChild(el('<div class="section-title">Clôture de l\'épisode</div>'));
-  const card = el('<div class="card"></div>');
-  const dateVal = frToDateInput(ep.suivi.Date_fin) || new Date().toISOString().slice(0,10);
-  const heureVal = ep.suivi.Heure_fin || '';
-  card.appendChild(el(`
-    <div class="question">Fin de l'épisode</div>
-    <div class="sublabel">La durée sera recalculée automatiquement.</div>
-    <div style="display:flex;gap:8px;">
-      <input type="date" id="fin_date" value="${dateVal}" style="flex:1;"/>
-      <input type="time" id="fin_heure" value="${heureVal}" style="flex:1;"/>
+  // Date / heure de début
+  root.appendChild(el(`
+    <div class="card">
+      <div class="question">Début de l'épisode</div>
+      <div class="row2">
+        <input type="date" id="f_date" value="${todayInput()}"/>
+        <input type="time" id="f_heure" value="${nowStr()}"/>
+      </div>
     </div>
   `));
-  root.appendChild(card);
 
-  sectionSaveButton(card, async () => {
-    const dateV = document.getElementById('fin_date').value;
-    const heureV = document.getElementById('fin_heure').value;
-    const suivi = {};
-    if(dateV) suivi['Date_fin'] = dateInputToFr(dateV);
-    if(heureV) suivi['Heure_fin'] = heureV;
-    if(!Object.keys(suivi).length) throw new Error('Renseigne au moins la date ou l\'heure de fin.');
-    await postAction({ action:'update', id_episode: ep.suivi.ID_episode, suivi });
-  });
+  // Durée
+  root.appendChild(el(`
+    <div class="card">
+      <div class="question">Durée <span>(en heures, ex : 1.5 pour 1h30 — laisser vide si non déterminée)</span></div>
+      <input type="number" id="f_duree" placeholder="ex : 3" min="0" step="0.25"/>
+    </div>
+  `));
+
+  // Intensité
+  root.appendChild(el(`
+    <div class="card">
+      <div class="question">Intensité ressentie <span>(0 à 10)</span></div>
+      <div class="range-wrap">
+        <input type="range" id="f_intensite" min="0" max="10" step="1" value="5"/>
+        <div class="range-val" id="f_intensite_val">5</div>
+      </div>
+    </div>
+  `));
+  document.getElementById('f_intensite').oninput = (e) => { document.getElementById('f_intensite_val').textContent = e.target.value; };
+
+  if(currentType === 'RGO'){
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Repas ou aliment précédent</div>
+        <input type="text" id="f_repas" placeholder="ex : croissant + café"/>
+      </div>
+    `));
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Délai d'apparition depuis le repas <span>(en heures, ex : 0.5 pour 20 min)</span></div>
+        <input type="number" id="f_delai" placeholder="ex : 4" min="0" step="0.25"/>
+      </div>
+    `));
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Gaviscon pris ?</div>
+        <div class="btn-group cols2" id="grid-gaviscon"></div>
+      </div>
+    `));
+    let gavPris = 'Non';
+    buildButtonSelect('grid-gaviscon', ['Oui','Non'], gavPris, v => { gavPris = v; document.getElementById('gav-detail-wrap').style.display = v==='Oui' ? 'block' : 'none'; });
+
+    const gavWrap = el(`<div id="gav-detail-wrap" style="display:none;"></div>`);
+    gavWrap.appendChild(el(`
+      <div class="card">
+        <div class="question">Combien de prises ?</div>
+        <input type="number" id="f_gav_combien" placeholder="ex : 1" min="0" step="1"/>
+      </div>
+    `));
+    gavWrap.appendChild(el(`
+      <div class="card">
+        <div class="question">Efficacité du Gaviscon</div>
+        <div class="btn-group" id="grid-gav-eff" style="display:grid;gap:8px;"></div>
+      </div>
+    `));
+    root.appendChild(gavWrap);
+    let gavEff = null;
+    buildButtonSelect('grid-gav-eff', GAVISCON_EFFICACITE, gavEff, v => gavEff = v);
+
+    root._getPayload = () => ({
+      type: 'RGO',
+      repas: document.getElementById('f_repas').value,
+      delai: document.getElementById('f_delai').value,
+      gaviscon_pris: gavPris,
+      gaviscon_combien: gavPris==='Oui' ? document.getElementById('f_gav_combien').value : '',
+      gaviscon_efficacite: gavPris==='Oui' ? (gavEff||'') : ''
+    });
+  } else {
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Localisation précise</div>
+        <input type="text" id="f_localisation" placeholder="ex : gorge, œsophage, épigastre"/>
+      </div>
+    `));
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Symptômes ressentis</div>
+        <div class="checkbox-grid" id="grid-sympt"></div>
+        <div style="margin-top:8px;"><input type="text" id="f_sympt_autre" placeholder="Autre symptôme (facultatif)"/></div>
+      </div>
+    `));
+    symptEoeState = [];
+    const grid = document.getElementById('grid-sympt');
+    SYMPTOMES_EOE.forEach(s => {
+      const item = el(`
+        <label class="checkbox-item">
+          <input type="checkbox"/>
+          <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
+          <span class="checkbox-label">${s}</span>
+        </label>
+      `);
+      item.onclick = () => {
+        setTimeout(()=>{
+          const input = item.querySelector('input');
+          item.classList.toggle('checked', input.checked);
+          const idx = symptEoeState.indexOf(s);
+          if(input.checked && idx===-1) symptEoeState.push(s);
+          if(!input.checked && idx!==-1) symptEoeState.splice(idx,1);
+        },0);
+      };
+      grid.appendChild(item);
+    });
+
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Type de douleur</div>
+        <div class="btn-group" id="grid-type-douleur" style="display:grid;gap:8px;"></div>
+      </div>
+    `));
+    let typeDouleur = null;
+    buildButtonSelect('grid-type-douleur', TYPE_DOULEUR, typeDouleur, v => typeDouleur = v);
+
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Aliments des 24-48h précédentes</div>
+        <input type="text" id="f_aliments" placeholder="ex : curry au lait de coco la veille au soir"/>
+      </div>
+    `));
+
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Kiwi ou coco présent parmi ces aliments ?</div>
+        <div class="btn-group cols2" id="grid-kiwi"></div>
+        <div id="kiwi-detail-wrap" style="display:none;margin-top:8px;"><input type="text" id="f_kiwi_detail" placeholder="lequel ? (ex : lait de coco)"/></div>
+      </div>
+    `));
+    let kiwiCoco = 'Non';
+    buildButtonSelect('grid-kiwi', ['Oui','Non'], kiwiCoco, v => { kiwiCoco = v; document.getElementById('kiwi-detail-wrap').style.display = v==='Oui' ? 'block' : 'none'; });
+
+    root.appendChild(el(`
+      <div class="card">
+        <div class="question">Gêne à la déglutition</div>
+        <div class="btn-group" id="grid-gene" style="display:grid;gap:8px;"></div>
+      </div>
+    `));
+    let geneDeglutition = null;
+    buildButtonSelect('grid-gene', GENE_DEGLUTITION, geneDeglutition, v => geneDeglutition = v);
+
+    root._getPayload = () => ({
+      type: 'EoE',
+      localisation: document.getElementById('f_localisation').value,
+      symptomes: [...symptEoeState, document.getElementById('f_sympt_autre').value].filter(Boolean).join(', '),
+      type_douleur: typeDouleur || '',
+      aliments: document.getElementById('f_aliments').value,
+      kiwi_coco: kiwiCoco==='Oui' ? ('Oui'+(document.getElementById('f_kiwi_detail').value ? ' ('+document.getElementById('f_kiwi_detail').value+')' : '')) : 'Non',
+      gene_deglutition: geneDeglutition || ''
+    });
+  }
+
+  root.appendChild(el(`
+    <div class="card">
+      <div class="question">Remarques</div>
+      <input type="text" id="f_remarques" placeholder="ex : amélioré après 2h, sans rien prendre"/>
+    </div>
+  `));
+
+  const btn = el('<button class="submit-btn">Enregistrer l\'épisode</button>');
+  const errBox = el('<div class="error-box"></div>');
+  const successBox = el(`<div class="success-box"><div class="success-title">Épisode enregistré !</div><div class="success-sub">Les données ont bien été ajoutées au suivi.</div></div>`);
+  root.appendChild(btn); root.appendChild(errBox); root.appendChild(successBox);
+
+  btn.onclick = async () => {
+    btn.disabled = true; btn.textContent = 'Enregistrement…';
+    errBox.classList.remove('show');
+    try{
+      const dateV = document.getElementById('f_date').value;
+      const heureV = document.getElementById('f_heure').value;
+      const dureeV = document.getElementById('f_duree').value;
+      const intensiteV = document.getElementById('f_intensite').value;
+      const remarquesV = document.getElementById('f_remarques').value;
+
+      const payload = Object.assign({
+        date: dateInputToFr(dateV),
+        heure_debut: heureV,
+        duree: dureeV,
+        intensite: intensiteV,
+        remarques: remarquesV
+      }, root._getPayload());
+
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(payload)
+      });
+
+      successBox.classList.add('show');
+      btn.style.display = 'none';
+    } catch(err){
+      errBox.textContent = 'Erreur : ' + err.message;
+      errBox.classList.add('show');
+      btn.disabled = false; btn.textContent = "Enregistrer l'épisode";
+    }
+  };
 }
 
-/* ===================== INIT ===================== */
-renderMenu();
+render();
 </script>
 </body>
 </html>
