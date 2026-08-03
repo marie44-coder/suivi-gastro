@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Saisie — Suivi RGO / EoE</title>
+<title>Saisie — Suivi RGO / Œsophagite</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -11,7 +11,7 @@ body{background:#0f1117;color:#fff;font-family:'DM Sans',sans-serif;min-height:1
 .header{background:#0d1629;padding:20px 20px 16px;margin-bottom:8px;}
 .header-title{font-size:18px;font-weight:500;color:#fff;}
 .header-sub{font-size:12px;color:#82B2C0aa;margin-top:3px;}
-.back-link{font-size:13px;color:#82B2C088;text-decoration:none;display:inline-block;margin-top:4px;}
+.back-link{font-size:13px;color:#82B2C088;text-decoration:none;display:inline-block;margin-top:4px;cursor:pointer;}
 .back-link:hover{color:#82B2C0;}
 .form{max-width:480px;margin:0 auto;padding:0 16px;}
 .card{background:#1a1e2e;border:0.5px solid #ffffff08;border-radius:12px;padding:18px 16px;margin-bottom:8px;}
@@ -21,9 +21,9 @@ body{background:#0f1117;color:#fff;font-family:'DM Sans',sans-serif;min-height:1
 input[type="time"],input[type="date"],input[type="number"],input[type="text"]{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 14px;font-size:15px;color:#fff;width:100%;outline:none;font-family:'DM Sans',sans-serif;-webkit-appearance:none;}
 select{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 14px;font-size:15px;color:#fff;width:100%;outline:none;font-family:'DM Sans',sans-serif;-webkit-appearance:none;}
 input:focus,select:focus{border-color:#82B2C066;}
-input[type="number"]{-moz-appearance:textfield;}
-input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hm-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.hm-lbl{font-size:11px;color:#555;margin-bottom:4px;}
 .btn-group{display:grid;gap:8px;}
 .btn-group.cols2{grid-template-columns:1fr 1fr;}
 .btn-opt{background:#0f1117;border:0.5px solid #ffffff15;border-radius:8px;padding:10px 8px;font-size:12px;color:#aaa;cursor:pointer;text-align:center;transition:all 0.15s;font-family:'DM Sans',sans-serif;}
@@ -45,28 +45,46 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 .submit-btn{background:#82B2C0;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:500;color:#0d1629;width:100%;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:6px;transition:background 0.2s;}
 .submit-btn:hover{background:#6fa0af;}
 .submit-btn:disabled{background:#333;color:#666;cursor:not-allowed;}
-.saved-flag{font-size:11px;color:#8FBF7A;margin-top:6px;display:none;}
-.saved-flag.show{display:block;}
+.add-btn{background:transparent;border:1px dashed #82B2C044;border-radius:10px;padding:12px;font-size:13px;color:#82B2C0aa;width:100%;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:8px;}
+.add-btn:hover{border-color:#82B2C0;color:#82B2C0;}
+.remove-link{font-size:11px;color:#D8595988;cursor:pointer;text-align:right;margin-top:8px;}
+.remove-link:hover{color:#D85959;}
 .error-box{background:#2a1010;border:0.5px solid #D85A3044;border-radius:10px;padding:12px 14px;font-size:13px;color:#F09595;margin-top:8px;display:none;}
 .error-box.show{display:block;}
+.success-box{background:#0d1629;border:0.5px solid #8FBF7A44;border-radius:12px;padding:20px;text-align:center;display:none;}
+.success-box.show{display:block;}
+.success-title{font-size:16px;font-weight:500;color:#8FBF7A;margin-bottom:6px;}
+.success-sub{font-size:13px;color:#82B2C0aa;}
 .type-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
 .type-btn{border-radius:12px;padding:18px 12px;text-align:center;cursor:pointer;border:0.5px solid #ffffff10;background:#1a1e2e;transition:all 0.15s;}
 .type-btn .tt{font-size:15px;font-weight:500;color:#fff;}
 .type-btn .ts{font-size:11px;color:#666;margin-top:3px;}
 .type-btn.active{background:#0a2535;border-color:#82B2C0;}
 .type-btn.active .tt{color:#C3DEDD;}
-#eoe-fields,#rgo-fields{display:none;}
-.success-box{background:#0d1629;border:0.5px solid #8FBF7A44;border-radius:12px;padding:20px;text-align:center;display:none;}
-.success-box.show{display:block;}
-.success-title{font-size:16px;font-weight:500;color:#8FBF7A;margin-bottom:6px;}
-.success-sub{font-size:13px;color:#82B2C0aa;}
+.mode-choice{display:grid;gap:12px;margin-bottom:8px;}
+.mode-card{background:#1a1e2e;border:0.5px solid #ffffff10;border-radius:14px;padding:20px;cursor:pointer;transition:all 0.15s;}
+.mode-card:hover{border-color:#82B2C066;}
+.mode-card-title{font-size:16px;font-weight:500;color:#fff;margin-bottom:4px;}
+.mode-card-sub{font-size:12px;color:#666;line-height:1.5;}
+.episode-item{background:#1a1e2e;border:0.5px solid #ffffff10;border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all 0.15s;}
+.episode-item:hover{border-color:#82B2C066;}
+.episode-item.disabled{opacity:0.4;cursor:default;}
+.episode-info{font-size:13px;color:#ccc;}
+.episode-sub{font-size:11px;color:#555;margin-top:2px;}
+.badge{font-size:10px;padding:3px 8px;border-radius:6px;font-weight:500;}
+.badge.rgo{background:#2a1a08;color:#D4A060;}
+.badge.eoe{background:#2a121a;color:#C97B84;}
+.badge.old{background:#1e2235;color:#555;}
+.loading{text-align:center;padding:40px 0;color:#555;font-size:13px;}
+.meal-block{border:0.5px solid #ffffff10;border-radius:10px;padding:12px;margin-bottom:8px;}
+.meal-head{display:flex;gap:8px;margin-bottom:8px;}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <a href="index_gastro.html" class="back-link">← Retour au dashboard</a>
-  <div class="header-title">Suivi RGO / EoE</div>
+  <a class="back-link" id="home-link">← Retour au dashboard</a>
+  <div class="header-title">Suivi RGO / Œsophagite</div>
   <div class="header-sub" id="page-sub"></div>
 </div>
 
@@ -74,22 +92,61 @@ input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;hei
 
 <script>
 /* ===================== CONFIGURATION ===================== */
-// À remplacer par l'URL de la Web App Apps Script déployée POUR CE classeur
-// (script distinct de celui du suivi migraines — voir Code.gs fourni séparément)
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZBdxCBOQZes1TrcWjb6F9LnySVCO5j2Awt5bzMoFoMh6187Rfp4ia5vHgTuLmz-DQcg/exec';
+const WORKER_URL = 'REMPLACER_PAR_URL_DU_WORKER_CLOUDFLARE_GASTRO';
+/* ============================================================ */
 
-const SYMPTOMES_EOE = ['Sensation de nourriture bloquée','Douleur','Brûlure','Toux ou étouffement'];
-const GAVISCON_EFFICACITE = ['Bon','Partiel','Insuffisant','Insatisfaisant'];
+const LOCALISATIONS_EOE = ['Gorge','Œsophage','Épigastre','Rétrosternal (derrière le sternum)'];
+const SYMPTOMES_EOE = ['Douleur à l\'épigastre','Sensation de nourriture bloquée','Douleur','Gêne','Brûlure','Toux ou étouffement'];
 const TYPE_DOULEUR = ['Constante','Pics','Constante avec pics','NA'];
+const EFFICACITE_PRISE = ['Bon','Partiel','Insuffisant','Insatisfaisant'];
 const GENE_DEGLUTITION = ['Aucune','Légère','Modérée','Sévère'];
+const TYPES_REPAS = ['Petit-déjeuner','Déjeuner','Dîner','Goûter','En-cas'];
+const HEURES_OPT = Array.from({length:24},(_,i)=>String(i).padStart(2,'0'));
+const MINUTES_OPT = ['00','05','10','15','20','25','30','35','40','45','50','55'];
 
+let view = 'menu'; // menu | nouveau | liste | editer
 let currentType = 'RGO';
-let symptEoeState = [];
+let episodesCache = null;
+let editingEpisode = null; // {kind:'RGO'|'EoE', id, raw}
 
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
 function todayInput(){ return new Date().toISOString().slice(0,10); }
 function nowStr(){ const d=new Date(); return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); }
 function dateInputToFr(v){ if(!v) return ''; const p=v.split('-'); return p[2]+'/'+p[1]+'/'+p[0]; }
-function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstChild; }
+function frToDateInput(v){ if(!v) return ''; const p=String(v).split('/'); if(p.length<3) return ''; return p[2]+'-'+p[1]+'-'+p[0]; }
+
+// Convertit une durée décimale existante (ex: 1.5) en {h, m} pour préremplir les sélecteurs.
+// Tolère aussi les anciennes valeurs texte ("3h", "20 min", "Non renseignée").
+function decimalToHM(v){
+  if(v==null||v==='') return {h:0,m:0};
+  const s=v.toString().trim().toLowerCase();
+  if(s.includes('non renseign')) return {h:0,m:0};
+  let dec=null;
+  if(/^[0-9]+([.,][0-9]+)?$/.test(s)) dec=parseFloat(s.replace(',','.'));
+  else{
+    let m=s.match(/^([0-9]+)h([0-9]{1,2})?$/); if(m) dec=parseInt(m[1])+(m[2]?parseInt(m[2])/60:0);
+    if(dec==null){ m=s.match(/^([0-9]+)\s*min$/); if(m) dec=parseInt(m[1])/60; }
+  }
+  if(dec==null) return {h:0,m:0};
+  const h=Math.floor(dec);
+  const mRaw=Math.round((dec-h)*60);
+  const mRounded=Math.round(mRaw/5)*5;
+  return {h, m: mRounded>=60?0:mRounded};
+}
+function hmToDecimal(h,m){ return Math.round((parseInt(h)+parseInt(m)/60)*100)/100; }
+
+function buildHMSelect(containerId, defaultH, defaultM){
+  const c = document.getElementById(containerId);
+  c.innerHTML = `
+    <div class="hm-row">
+      <div><div class="hm-lbl">Heures</div><select id="${containerId}_h">${HEURES_OPT.map(h=>`<option value="${h}" ${parseInt(h)===defaultH?'selected':''}>${h} h</option>`).join('')}</select></div>
+      <div><div class="hm-lbl">Minutes</div><select id="${containerId}_m">${MINUTES_OPT.map(m=>`<option value="${m}" ${parseInt(m)===defaultM?'selected':''}>${m} min</option>`).join('')}</select></div>
+    </div>`;
+}
+function getHM(containerId){
+  return { h: document.getElementById(containerId+'_h').value, m: document.getElementById(containerId+'_m').value };
+}
 
 function buildButtonSelect(containerId, options, current, onChange){
   const container = document.getElementById(containerId);
@@ -106,234 +163,364 @@ function buildButtonSelect(containerId, options, current, onChange){
   });
 }
 
-function render(){
-  document.getElementById('page-sub').textContent = "Nouvel épisode — " + new Date().toLocaleDateString('fr-FR');
+function buildCheckboxGrid(containerId, values, stateArray){
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  values.forEach(v => {
+    const checked = stateArray.includes(v);
+    const item = el(`
+      <label class="checkbox-item ${checked?'checked':''}">
+        <input type="checkbox" ${checked?'checked':''}/>
+        <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
+        <span class="checkbox-label">${v}</span>
+      </label>
+    `);
+    item.onclick = () => {
+      setTimeout(()=>{
+        const input = item.querySelector('input');
+        item.classList.toggle('checked', input.checked);
+        const idx = stateArray.indexOf(v);
+        if(input.checked && idx===-1) stateArray.push(v);
+        if(!input.checked && idx!==-1) stateArray.splice(idx,1);
+      },0);
+    };
+    grid.appendChild(item);
+  });
+}
+
+async function fetchSheet(sheetName){
+  const url=WORKER_URL+'?sheet='+encodeURIComponent(sheetName);
+  const r=await fetch(url);
+  if(!r.ok) throw new Error('Erreur '+r.status);
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message||'Erreur de lecture');
+  if(!d.values||d.values.length<2) return [];
+  const [headers,...rows]=d.values;
+  return rows.map(row=>{const o={};headers.forEach((h,i)=>o[h.trim()]=row[i]||'');return o;});
+}
+
+async function postAction(payload){
+  const r = await fetch(SCRIPT_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  return true; // no-cors : pas de lecture fiable de la réponse
+}
+
+/* ===================== MENU ===================== */
+function renderMenu(){
+  document.getElementById('page-sub').textContent = '';
+  document.getElementById('home-link').style.display = 'none';
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  root.appendChild(el(`
+    <div class="mode-choice">
+      <div class="mode-card" id="btn-nouveau">
+        <div class="mode-card-title">🩹 Nouvel épisode</div>
+        <div class="mode-card-sub">Enregistrer une nouvelle remontée acide ou une nouvelle crise d'œsophagite.</div>
+      </div>
+      <div class="mode-card" id="btn-modifier">
+        <div class="mode-card-title">✏️ Modifier un épisode existant</div>
+        <div class="mode-card-sub">Corriger ou compléter un épisode déjà enregistré.</div>
+      </div>
+    </div>
+  `));
+  document.getElementById('btn-nouveau').onclick = () => { view='nouveau'; editingEpisode=null; renderForm(); };
+  document.getElementById('btn-modifier').onclick = () => { view='liste'; renderListe(); };
+}
+
+/* ===================== LISTE (pour édition) ===================== */
+async function renderListe(){
+  document.getElementById('page-sub').textContent = 'Modifier un épisode';
+  document.getElementById('home-link').style.display = 'inline-block';
+  document.getElementById('home-link').textContent = '← Retour';
+  document.getElementById('home-link').onclick = () => { view='menu'; renderMenu(); };
+  const root = document.getElementById('root');
+  root.innerHTML = '';
+  root.appendChild(el('<div class="loading">Chargement des épisodes…</div>'));
+
+  try{
+    if(!episodesCache){
+      const [rgo, eoe] = await Promise.all([fetchSheet('Remontées acides (RGO)'), fetchSheet('Crises EoE')]);
+      episodesCache = [
+        ...rgo.map(r=>({kind:'RGO', id:r.ID, date:r.Date, heure:r['Heure de début'], raw:r})),
+        ...eoe.map(r=>({kind:'EoE', id:r.ID, date:r['Date début'], heure:r['Heure de début'], raw:r}))
+      ].sort((a,b)=>{
+        const da=a.date.split('/').reverse().join('')+  (a.heure||'').replace(':','');
+        const db=b.date.split('/').reverse().join('')+ (b.heure||'').replace(':','');
+        return db.localeCompare(da);
+      });
+    }
+    root.innerHTML = '';
+    if(!episodesCache.length){
+      root.appendChild(el('<div class="loading">Aucun épisode enregistré pour l\'instant.</div>'));
+      return;
+    }
+    episodesCache.forEach(ep => {
+      const modifiable = !!ep.id;
+      const item = el(`
+        <div class="episode-item ${modifiable?'':'disabled'}">
+          <div>
+            <div class="episode-info"><span class="badge ${ep.kind==='RGO'?'rgo':'eoe'}">${ep.kind==='RGO'?'RGO':'Œsophagite'}</span>&nbsp; ${ep.date} ${ep.heure||''}</div>
+            ${!modifiable?'<div class="episode-sub">Ancien épisode sans identifiant — non modifiable ici</div>':''}
+          </div>
+        </div>
+      `);
+      if(modifiable){
+        item.onclick = () => { editingEpisode = ep; currentType = ep.kind; view='editer'; renderForm(); };
+      }
+      root.appendChild(item);
+    });
+  }catch(err){
+    root.innerHTML = '';
+    root.appendChild(el('<div class="error-box show">Erreur de chargement : '+err.message+'</div>'));
+  }
+}
+
+/* ===================== FORMULAIRE (création ou édition) ===================== */
+function renderForm(){
+  const isEdit = view==='editer';
+  const raw = isEdit ? editingEpisode.raw : null;
+  document.getElementById('page-sub').textContent = isEdit ? 'Modifier l\'épisode' : 'Nouvel épisode';
+  document.getElementById('home-link').style.display = 'inline-block';
+  document.getElementById('home-link').textContent = '← Retour';
+  document.getElementById('home-link').onclick = () => { view = isEdit ? 'liste' : 'menu'; isEdit ? renderListe() : renderMenu(); };
+
   const root = document.getElementById('root');
   root.innerHTML = '';
 
-  // Sélecteur de type
-  const toggle = el(`
-    <div class="type-toggle">
-      <div class="type-btn ${currentType==='RGO'?'active':''}" id="type-rgo-btn">
-        <div class="tt">Remontée acide</div><div class="ts">RGO</div>
+  if(!isEdit){
+    const toggle = el(`
+      <div class="type-toggle">
+        <div class="type-btn ${currentType==='RGO'?'active':''}" id="type-rgo-btn"><div class="tt">Remontée acide</div><div class="ts">RGO</div></div>
+        <div class="type-btn ${currentType==='EoE'?'active':''}" id="type-eoe-btn"><div class="tt">Œsophagite</div><div class="ts">EoE</div></div>
       </div>
-      <div class="type-btn ${currentType==='EoE'?'active':''}" id="type-eoe-btn">
-        <div class="tt">Crise de déglutition</div><div class="ts">EoE</div>
-      </div>
-    </div>
-  `);
-  root.appendChild(toggle);
-  toggle.querySelector('#type-rgo-btn').onclick = () => { currentType='RGO'; render(); };
-  toggle.querySelector('#type-eoe-btn').onclick = () => { currentType='EoE'; render(); };
+    `);
+    root.appendChild(toggle);
+    toggle.querySelector('#type-rgo-btn').onclick = () => { currentType='RGO'; renderForm(); };
+    toggle.querySelector('#type-eoe-btn').onclick = () => { currentType='EoE'; renderForm(); };
+  }
 
-  // Date / heure de début
+  const dateVal = isEdit ? frToDateInput(currentType==='RGO'?raw.Date:raw['Date début']) : todayInput();
+  const heureVal = isEdit ? raw['Heure de début'] : nowStr();
   root.appendChild(el(`
     <div class="card">
       <div class="question">Début de l'épisode</div>
-      <div class="row2">
-        <input type="date" id="f_date" value="${todayInput()}"/>
-        <input type="time" id="f_heure" value="${nowStr()}"/>
-      </div>
+      <div class="row2"><input type="date" id="f_date" value="${dateVal}"/><input type="time" id="f_heure" value="${heureVal}"/></div>
     </div>
   `));
 
-  // Durée
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Durée <span>(en heures, ex : 1.5 pour 1h30 — laisser vide si non déterminée)</span></div>
-      <input type="number" id="f_duree" placeholder="ex : 3" min="0" step="0.25"/>
-    </div>
-  `));
+  root.appendChild(el(`<div class="card"><div class="question">Durée</div><div id="hm_duree"></div></div>`));
+  const dureeHM = isEdit ? decimalToHM(raw.Durée) : {h:0,m:0};
+  buildHMSelect('hm_duree', dureeHM.h, dureeHM.m);
 
-  // Intensité
   root.appendChild(el(`
     <div class="card">
       <div class="question">Intensité ressentie <span>(0 à 10)</span></div>
-      <div class="range-wrap">
-        <input type="range" id="f_intensite" min="0" max="10" step="1" value="5"/>
-        <div class="range-val" id="f_intensite_val">5</div>
-      </div>
+      <div class="range-wrap"><input type="range" id="f_intensite" min="0" max="10" step="1" value="${isEdit?(raw['Intensité (0-10)']||5):5}"/><div class="range-val" id="f_intensite_val">${isEdit?(raw['Intensité (0-10)']||5):5}</div></div>
     </div>
   `));
-  document.getElementById('f_intensite').oninput = (e) => { document.getElementById('f_intensite_val').textContent = e.target.value; };
 
   if(currentType === 'RGO'){
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Repas ou aliment précédent</div>
-        <input type="text" id="f_repas" placeholder="ex : croissant + café"/>
-      </div>
-    `));
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Délai d'apparition depuis le repas <span>(en heures, ex : 0.5 pour 20 min)</span></div>
-        <input type="number" id="f_delai" placeholder="ex : 4" min="0" step="0.25"/>
-      </div>
-    `));
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Gaviscon pris ?</div>
-        <div class="btn-group cols2" id="grid-gaviscon"></div>
-      </div>
-    `));
-    let gavPris = 'Non';
-    buildButtonSelect('grid-gaviscon', ['Oui','Non'], gavPris, v => { gavPris = v; document.getElementById('gav-detail-wrap').style.display = v==='Oui' ? 'block' : 'none'; });
+    root.appendChild(el(`<div class="card"><div class="question">Repas ou aliment précédent</div><input type="text" id="f_repas" placeholder="ex : croissant + café" value="${isEdit?(raw['Repas / aliment précédent']||''):''}"/></div>`));
+    root.appendChild(el(`<div class="card"><div class="question">Délai d'apparition depuis le repas</div><div id="hm_delai"></div></div>`));
+    const delaiHM = isEdit ? decimalToHM(raw['Délai d\'apparition (depuis repas)']) : {h:0,m:0};
+    buildHMSelect('hm_delai', delaiHM.h, delaiHM.m);
 
-    const gavWrap = el(`<div id="gav-detail-wrap" style="display:none;"></div>`);
-    gavWrap.appendChild(el(`
-      <div class="card">
-        <div class="question">Combien de prises ?</div>
-        <input type="number" id="f_gav_combien" placeholder="ex : 1" min="0" step="1"/>
-      </div>
-    `));
-    gavWrap.appendChild(el(`
-      <div class="card">
-        <div class="question">Efficacité du Gaviscon</div>
-        <div class="btn-group" id="grid-gav-eff" style="display:grid;gap:8px;"></div>
-      </div>
-    `));
-    root.appendChild(gavWrap);
-    let gavEff = null;
-    buildButtonSelect('grid-gav-eff', GAVISCON_EFFICACITE, gavEff, v => gavEff = v);
+    root.appendChild(el(`<div class="card"><div class="question">Gaviscon pris ?</div><div class="btn-group cols2" id="grid-gav-pris"></div></div>`));
+    let gavPris = isEdit ? (raw['Gaviscon pris ?']||'Non') : 'Non';
+    const gav1Wrap = el(`<div id="gav1-wrap" style="display:none;"></div>`);
+    const gav2QWrap = el(`<div id="gav2-question-wrap" style="display:none;"></div>`);
+    root.appendChild(gav1Wrap);
+    root.appendChild(gav2QWrap);
 
-    root._getPayload = () => ({
-      type: 'RGO',
-      repas: document.getElementById('f_repas').value,
-      delai: document.getElementById('f_delai').value,
-      gaviscon_pris: gavPris,
-      gaviscon_combien: gavPris==='Oui' ? document.getElementById('f_gav_combien').value : '',
-      gaviscon_efficacite: gavPris==='Oui' ? (gavEff||'') : ''
+    let gav1Eff = isEdit ? (raw['Efficacité #1']||null) : null;
+    let gav2Eff = isEdit ? (raw['Efficacité #2']||null) : null;
+    let gav2e = isEdit ? (raw['2e prise de Gaviscon ?']||'Non') : 'Non';
+    const gav2Wrap = el(`<div id="gav2-wrap" style="display:none;"></div>`);
+    root.appendChild(gav2Wrap);
+
+    function renderGav1(){
+      gav1Wrap.innerHTML = '';
+      gav1Wrap.appendChild(el(`<div class="card"><div class="question">Combien ? (1ère prise)</div><input type="number" id="gav1_combien" min="0" step="1" value="${isEdit?(raw['Combien ? #1']||1):1}"/><div class="question" style="margin-top:14px;">À quelle heure ?</div><input type="time" id="gav1_heure" value="${isEdit?(raw['A quelle heure ? #1']||''):nowStr()}"/><div class="question" style="margin-top:14px;">Efficacité #1</div><div class="btn-group" id="grid-gav1-eff" style="display:grid;gap:8px;"></div></div>`));
+      buildButtonSelect('grid-gav1-eff', EFFICACITE_PRISE, gav1Eff, v=>gav1Eff=v);
+    }
+    function renderGav2Question(){
+      gav2QWrap.innerHTML = '';
+      gav2QWrap.appendChild(el(`<div class="card"><div class="question">2e prise de Gaviscon ?</div><div class="btn-group cols2" id="grid-gav-2e"></div></div>`));
+      buildButtonSelect('grid-gav-2e', ['Oui','Non'], gav2e, v=>{ gav2e=v; gav2Wrap.style.display = v==='Oui'?'block':'none'; if(v==='Oui') renderGav2(); });
+    }
+    function renderGav2(){
+      gav2Wrap.innerHTML = '';
+      gav2Wrap.appendChild(el(`<div class="card"><div class="question">Combien ? (2e prise)</div><input type="number" id="gav2_combien" min="0" step="1" value="${isEdit?(raw['Combien ? #2']||1):1}"/><div class="question" style="margin-top:14px;">À quelle heure ?</div><input type="time" id="gav2_heure" value="${isEdit?(raw['A quelle heure ? #2']||''):nowStr()}"/><div class="question" style="margin-top:14px;">Efficacité #2</div><div class="btn-group" id="grid-gav2-eff" style="display:grid;gap:8px;"></div></div>`));
+      buildButtonSelect('grid-gav2-eff', EFFICACITE_PRISE, gav2Eff, v=>gav2Eff=v);
+    }
+
+    buildButtonSelect('grid-gav-pris', ['Oui','Non'], gavPris, v=>{
+      gavPris=v;
+      gav1Wrap.style.display = v==='Oui'?'block':'none';
+      gav2QWrap.style.display = v==='Oui'?'block':'none';
+      if(v==='Oui'){ renderGav1(); renderGav2Question(); } else { gav2Wrap.style.display='none'; }
     });
-  } else {
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Localisation précise</div>
-        <input type="text" id="f_localisation" placeholder="ex : gorge, œsophage, épigastre"/>
-      </div>
-    `));
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Symptômes ressentis</div>
-        <div class="checkbox-grid" id="grid-sympt"></div>
-        <div style="margin-top:8px;"><input type="text" id="f_sympt_autre" placeholder="Autre symptôme (facultatif)"/></div>
-      </div>
-    `));
-    symptEoeState = [];
-    const grid = document.getElementById('grid-sympt');
-    SYMPTOMES_EOE.forEach(s => {
-      const item = el(`
-        <label class="checkbox-item">
-          <input type="checkbox"/>
-          <div class="checkbox-box"><span class="checkbox-check">✓</span></div>
-          <span class="checkbox-label">${s}</span>
-        </label>
-      `);
-      item.onclick = () => {
-        setTimeout(()=>{
-          const input = item.querySelector('input');
-          item.classList.toggle('checked', input.checked);
-          const idx = symptEoeState.indexOf(s);
-          if(input.checked && idx===-1) symptEoeState.push(s);
-          if(!input.checked && idx!==-1) symptEoeState.splice(idx,1);
-        },0);
+    if(gavPris==='Oui'){
+      gav1Wrap.style.display='block'; gav2QWrap.style.display='block';
+      renderGav1(); renderGav2Question();
+      if(gav2e==='Oui'){ gav2Wrap.style.display='block'; renderGav2(); }
+    }
+
+    root._getPayload = () => {
+      const dHM = getHM('hm_delai');
+      const p = {
+        type:'RGO',
+        repas: document.getElementById('f_repas').value,
+        delai: hmToDecimal(dHM.h, dHM.m),
+        gaviscon_pris: gavPris
       };
-      grid.appendChild(item);
-    });
+      if(gavPris==='Oui'){
+        p.gav1_combien = document.getElementById('gav1_combien').value;
+        p.gav1_heure = document.getElementById('gav1_heure').value;
+        p.gav1_efficacite = gav1Eff||'';
+        p.gaviscon_2e = gav2e;
+        if(gav2e==='Oui'){
+          p.gav2_combien = document.getElementById('gav2_combien').value;
+          p.gav2_heure = document.getElementById('gav2_heure').value;
+          p.gav2_efficacite = gav2Eff||'';
+        }
+      }
+      return p;
+    };
+  } else {
+    root.appendChild(el(`<div class="card"><div class="question">Localisation précise</div><div class="checkbox-grid" id="grid-loc"></div><div style="margin-top:8px;"><input type="text" id="f_loc_autre" placeholder="Autre localisation (facultatif)" value="${isEdit?(raw._locAutre||''):''}"/></div></div>`));
+    const locState = isEdit ? splitAndExtractKnown(raw['Localisation précise'], LOCALISATIONS_EOE, 'f_loc_autre') : [];
+    buildCheckboxGrid('grid-loc', LOCALISATIONS_EOE, locState);
 
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Type de douleur</div>
-        <div class="btn-group" id="grid-type-douleur" style="display:grid;gap:8px;"></div>
-      </div>
-    `));
-    let typeDouleur = null;
-    buildButtonSelect('grid-type-douleur', TYPE_DOULEUR, typeDouleur, v => typeDouleur = v);
+    root.appendChild(el(`<div class="card"><div class="question">Symptômes ressentis</div><div class="checkbox-grid" id="grid-sympt"></div><div style="margin-top:8px;"><input type="text" id="f_sympt_autre" placeholder="Autre symptôme (facultatif)"/></div></div>`));
+    const symptState = isEdit ? splitAndExtractKnown(raw['Symptômes'], SYMPTOMES_EOE, 'f_sympt_autre') : [];
+    buildCheckboxGrid('grid-sympt', SYMPTOMES_EOE, symptState);
 
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Aliments des 24-48h précédentes</div>
-        <input type="text" id="f_aliments" placeholder="ex : curry au lait de coco la veille au soir"/>
-      </div>
-    `));
+    root.appendChild(el(`<div class="card"><div class="question">Type de douleur</div><div class="btn-group" id="grid-type-douleur" style="display:grid;gap:8px;"></div><div style="margin-top:8px;"><input type="text" id="f_type_douleur_autre" placeholder="Autre (facultatif, remplace la sélection ci-dessus)"/></div></div>`));
+    let typeDouleur = isEdit ? (TYPE_DOULEUR.includes(raw['Type douleur (constante/pics)']) ? raw['Type douleur (constante/pics)'] : null) : null;
+    buildButtonSelect('grid-type-douleur', TYPE_DOULEUR, typeDouleur, v=>{typeDouleur=v; document.getElementById('f_type_douleur_autre').value='';});
+    if(isEdit && raw['Type douleur (constante/pics)'] && !TYPE_DOULEUR.includes(raw['Type douleur (constante/pics)'])){
+      document.getElementById('f_type_douleur_autre').value = raw['Type douleur (constante/pics)'];
+    }
 
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Kiwi ou coco présent parmi ces aliments ?</div>
-        <div class="btn-group cols2" id="grid-kiwi"></div>
-        <div id="kiwi-detail-wrap" style="display:none;margin-top:8px;"><input type="text" id="f_kiwi_detail" placeholder="lequel ? (ex : lait de coco)"/></div>
-      </div>
-    `));
-    let kiwiCoco = 'Non';
-    buildButtonSelect('grid-kiwi', ['Oui','Non'], kiwiCoco, v => { kiwiCoco = v; document.getElementById('kiwi-detail-wrap').style.display = v==='Oui' ? 'block' : 'none'; });
+    root.appendChild(el(`<div class="card"><div class="question">Aliments des dernières 24-48h</div><div class="sublabel">Renseigne jusqu'à 4 repas</div><div id="meals-wrap"></div></div>`));
+    const mealsWrap = document.getElementById('meals-wrap');
+    const existingMeals = isEdit ? parseMealsFromText(raw['Aliments 24-48h avant']) : [{},{},{},{}];
+    for(let i=0;i<4;i++){
+      const m = existingMeals[i]||{};
+      const block = el(`<div class="meal-block"><div class="meal-head"><select id="meal_type_${i}"><option value="">— Type —</option>${TYPES_REPAS.map(t=>`<option value="${t}" ${m.type===t?'selected':''}>${t}</option>`).join('')}</select></div><input type="text" id="meal_content_${i}" placeholder="Contenu du repas" value="${m.content||''}"/></div>`);
+      mealsWrap.appendChild(block);
+    }
 
-    root.appendChild(el(`
-      <div class="card">
-        <div class="question">Gêne à la déglutition</div>
-        <div class="btn-group" id="grid-gene" style="display:grid;gap:8px;"></div>
-      </div>
-    `));
-    let geneDeglutition = null;
-    buildButtonSelect('grid-gene', GENE_DEGLUTITION, geneDeglutition, v => geneDeglutition = v);
+    root.appendChild(el(`<div class="card"><div class="question">Kiwi ou coco présent parmi ces aliments ?</div><div class="btn-group cols2" id="grid-kiwi"></div><div id="kiwi-detail-wrap" style="margin-top:8px;"><input type="text" id="f_kiwi_detail" placeholder="lequel ? (ex : lait de coco)"/></div></div>`));
+    let kiwiInfo = isEdit ? parseKiwi(raw['Kiwi ou coco présent ?']) : {oui:false, detail:''};
+    buildButtonSelect('grid-kiwi', ['Oui','Non'], kiwiInfo.oui?'Oui':'Non', v=>{ kiwiInfo.oui = v==='Oui'; document.getElementById('kiwi-detail-wrap').style.display = kiwiInfo.oui?'block':'none'; });
+    document.getElementById('kiwi-detail-wrap').style.display = kiwiInfo.oui?'block':'none';
+    if(kiwiInfo.detail) document.getElementById('f_kiwi_detail').value = kiwiInfo.detail;
 
-    root._getPayload = () => ({
-      type: 'EoE',
-      localisation: document.getElementById('f_localisation').value,
-      symptomes: [...symptEoeState, document.getElementById('f_sympt_autre').value].filter(Boolean).join(', '),
-      type_douleur: typeDouleur || '',
-      aliments: document.getElementById('f_aliments').value,
-      kiwi_coco: kiwiCoco==='Oui' ? ('Oui'+(document.getElementById('f_kiwi_detail').value ? ' ('+document.getElementById('f_kiwi_detail').value+')' : '')) : 'Non',
-      gene_deglutition: geneDeglutition || ''
-    });
+    root.appendChild(el(`<div class="card"><div class="question">Gêne à la déglutition</div><div class="btn-group" id="grid-gene" style="display:grid;gap:8px;"></div></div>`));
+    let geneDeglutition = isEdit ? (raw['Gêne à la déglutition ?']||null) : null;
+    buildButtonSelect('grid-gene', GENE_DEGLUTITION, geneDeglutition, v=>geneDeglutition=v);
+
+    root._getPayload = () => {
+      const locFinal = [...locState];
+      const locAutre = document.getElementById('f_loc_autre').value;
+      if(locAutre) locFinal.push(locAutre);
+      const symptFinal = [...symptState];
+      const symptAutre = document.getElementById('f_sympt_autre').value;
+      if(symptAutre) symptFinal.push(symptAutre);
+      const typeDouleurAutre = document.getElementById('f_type_douleur_autre').value;
+      const meals = [];
+      for(let i=0;i<4;i++){
+        const t = document.getElementById('meal_type_'+i).value;
+        const c = document.getElementById('meal_content_'+i).value;
+        if(t && c) meals.push(t+': '+c);
+      }
+      return {
+        type:'EoE',
+        localisation: locFinal.join(', '),
+        symptomes: symptFinal.join(', '),
+        type_douleur: typeDouleurAutre || (typeDouleur||''),
+        aliments: meals.join('; '),
+        kiwi_coco: kiwiInfo.oui ? ('Oui'+(document.getElementById('f_kiwi_detail').value?' ('+document.getElementById('f_kiwi_detail').value+')':'')) : 'Non',
+        gene_deglutition: geneDeglutition||''
+      };
+    };
   }
 
-  root.appendChild(el(`
-    <div class="card">
-      <div class="question">Remarques</div>
-      <input type="text" id="f_remarques" placeholder="ex : amélioré après 2h, sans rien prendre"/>
-    </div>
-  `));
+  const intSlider = document.getElementById('f_intensite');
+  intSlider.oninput = (e)=>{ document.getElementById('f_intensite_val').textContent = e.target.value; };
 
-  const btn = el('<button class="submit-btn">Enregistrer l\'épisode</button>');
+  root.appendChild(el(`<div class="card"><div class="question">Remarques</div><input type="text" id="f_remarques" value="${isEdit?(raw.Remarques||''):''}"/></div>`));
+
+  const btn = el(`<button class="submit-btn">${isEdit?'Enregistrer les modifications':'Enregistrer l\'épisode'}</button>`);
   const errBox = el('<div class="error-box"></div>');
-  const successBox = el(`<div class="success-box"><div class="success-title">Épisode enregistré !</div><div class="success-sub">Les données ont bien été ajoutées au suivi.</div></div>`);
+  const successBox = el(`<div class="success-box"><div class="success-title">${isEdit?'Modifications enregistrées !':'Épisode enregistré !'}</div><div class="success-sub">Les données ont bien été mises à jour.</div></div>`);
   root.appendChild(btn); root.appendChild(errBox); root.appendChild(successBox);
 
   btn.onclick = async () => {
     btn.disabled = true; btn.textContent = 'Enregistrement…';
     errBox.classList.remove('show');
     try{
-      const dateV = document.getElementById('f_date').value;
-      const heureV = document.getElementById('f_heure').value;
-      const dureeV = document.getElementById('f_duree').value;
-      const intensiteV = document.getElementById('f_intensite').value;
-      const remarquesV = document.getElementById('f_remarques').value;
-
+      const dHM = getHM('hm_duree');
       const payload = Object.assign({
-        date: dateInputToFr(dateV),
-        heure_debut: heureV,
-        duree: dureeV,
-        intensite: intensiteV,
-        remarques: remarquesV
+        action: isEdit ? 'update' : 'create',
+        id: isEdit ? editingEpisode.id : undefined,
+        date: dateInputToFr(document.getElementById('f_date').value),
+        heure_debut: document.getElementById('f_heure').value,
+        duree: hmToDecimal(dHM.h, dHM.m),
+        intensite: document.getElementById('f_intensite').value,
+        remarques: document.getElementById('f_remarques').value
       }, root._getPayload());
 
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify(payload)
-      });
-
+      await postAction(payload);
+      episodesCache = null;
       successBox.classList.add('show');
       btn.style.display = 'none';
-    } catch(err){
-      errBox.textContent = 'Erreur : ' + err.message;
+    }catch(err){
+      errBox.textContent = 'Erreur : '+err.message;
       errBox.classList.add('show');
-      btn.disabled = false; btn.textContent = "Enregistrer l'épisode";
+      btn.disabled = false; btn.textContent = isEdit?'Enregistrer les modifications':'Enregistrer l\'épisode';
     }
   };
 }
 
-render();
+/* ===================== Helpers de parsing pour préremplir l'édition ===================== */
+function splitAndExtractKnown(text, knownList, autreInputId){
+  if(!text) return [];
+  const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
+  const known = parts.filter(p=>knownList.includes(p));
+  const unknown = parts.filter(p=>!knownList.includes(p));
+  if(unknown.length){ setTimeout(()=>{ const el=document.getElementById(autreInputId); if(el) el.value = unknown.join(', '); },0); }
+  return known;
+}
+function parseMealsFromText(text){
+  if(!text) return [{},{},{},{}];
+  const blocks = text.split(';').map(s=>s.trim()).filter(Boolean);
+  const meals = blocks.map(b=>{
+    const idx = b.indexOf(':');
+    if(idx===-1) return {type:'', content:b};
+    return {type:b.slice(0,idx).trim(), content:b.slice(idx+1).trim()};
+  });
+  while(meals.length<4) meals.push({});
+  return meals;
+}
+function parseKiwi(text){
+  if(!text) return {oui:false, detail:''};
+  const s = text.trim();
+  if(s.toLowerCase().startsWith('oui')){
+    const m = s.match(/\(([^)]+)\)/);
+    return {oui:true, detail: m?m[1]:''};
+  }
+  return {oui:false, detail:''};
+}
+
+/* ===================== INIT ===================== */
+document.getElementById('home-link').style.display = 'none';
+renderMenu();
 </script>
 </body>
 </html>
