@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi migraines</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f1117;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;}
+.app{max-width:1100px;margin:0 auto;padding:0 24px 60px;}
+.loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:12px;}
+.spinner{width:32px;height:32px;border:2px solid #ffffff15;border-top:2px solid #C39CC0;border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-text{font-size:13px;color:#555;}
+.error-box{background:#2a1010;border:0.5px solid #F6C7B344;border-radius:12px;padding:16px;margin:20px 0;font-size:13px;color:#F6C7B3;line-height:1.6;}
+.cover{background:#1a0d29;padding:20px 24px 18px;border-radius:0 0 20px 20px;}
+.cover-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;}
+.mol{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:3px;color:#C39CC055;margin-bottom:5px;}
+.ctitle{font-size:26px;font-weight:500;color:#F2EAE0;margin-bottom:3px;}
+.csub{font-size:13px;color:#C39CC0cc;}
+.cover-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:10px;}
+@media(max-width:700px){.cover-kpis{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:600px){.cover-kpis{grid-template-columns:1fr 1fr;}}
+.ckpi{background:#28123f;border:0.5px solid #C39CC033;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;}
+.ckpi-v{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:#E4D3E8;flex-shrink:0;}
+.ckpi-l{font-size:12px;color:#C39CC0bb;line-height:1.3;}
+.cdate{font-size:11px;color:#C39CC033;text-align:center;}
+.refresh-btn{background:transparent;border:0.5px solid #C39CC044;border-radius:8px;padding:7px 12px;font-size:12px;color:#C39CC066;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.refresh-btn:hover{border-color:#C39CC0;color:#C39CC0;}
+.tabs-wrap{background:#161920;border-bottom:0.5px solid #2a2d35;margin-bottom:24px;}
+.tabs{display:flex;padding:0;}
+.tab{padding:14px 28px;font-size:14px;color:#555;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;background:transparent;border-top:none;border-left:none;border-right:none;font-family:'DM Sans',sans-serif;}
+.tab.active{color:#E4D3E8;border-bottom:2px solid #C39CC0;font-weight:500;}
+.tab:hover:not(.active){color:#888;}
+.sec{margin-bottom:28px;}
+.slabel{font-size:13px;font-weight:500;color:#6b7080;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;}
+.chart-card{background:#161920;border:0.5px solid #2a2d35;border-radius:12px;padding:18px;margin-bottom:14px;}
+.ct{font-size:14px;color:#D8C3E0;margin-bottom:12px;font-weight:600;}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:10px;font-size:13px;color:#666;}
+.legend span{display:flex;align-items:center;gap:5px;}
+.lsq{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+@media(max-width:700px){.grid2,.grid3{grid-template-columns:1fr;}}
+.mini{background:#1e2235;border-radius:12px;padding:14px 16px;}
+.mini-l{font-size:12px;color:#9a9fb5;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.mini-v{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;}
+.kcard{border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+.kcard.p{background:#1e1030;border-left:3px solid #C39CC0;}
+.kcard.o{background:#2a1a10;border-left:3px solid #F6C7B3;}
+.kcard.g{background:#162010;border-left:3px solid #8FBF7A;}
+.klabel{font-size:12px;color:#a8adc0;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+.kval{font-family:'DM Mono',monospace;font-size:32px;font-weight:500;}
+.kval.p{color:#C39CC0;}.kval.o{color:#F6C7B3;}.kval.g{color:#8FBF7A;}
+.ksub{font-size:12px;color:#555;margin-top:5px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-name{font-size:13px;color:#888;width:160px;flex-shrink:0;}
+.bar-track{flex:1;background:#1e2235;border-radius:4px;height:8px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;}
+.bar-v{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;width:32px;text-align:right;flex-shrink:0;}
+.no-data{font-size:13px;color:#555;text-align:center;padding:24px 0;}
+.divider{border:none;border-top:0.5px solid #1e2235;margin:8px 0 24px;}
+.heatmap-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:12px;}
+.nav-grp{display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.arrow-btn{background:transparent;border:0.5px solid #2a2d35;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#666;cursor:pointer;transition:all 0.15s;flex-shrink:0;}
+.arrow-btn:hover{border-color:#C39CC0;color:#C39CC0;}
+.arrow-btn:disabled{opacity:0.2;cursor:default;}
+.month-name{font-size:13px;font-weight:500;color:#E4D3E8;min-width:80px;text-align:center;}
+.day-lbls{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px;}
+.dl{font-size:10px;color:#444;text-align:center;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cc{border-radius:6px;min-height:44px;padding:4px;display:flex;flex-direction:column;justify-content:space-between;border:0.5px solid rgba(228,211,232,0.15);}
+.cc:hover{transform:scale(1.05);z-index:10;position:relative;}
+.cc-day{font-size:11px;font-weight:500;}
+.cc-empty{min-height:44px;}
+.cc-nodata{border-radius:6px;min-height:44px;background:transparent;border:0.5px solid rgba(228,211,232,0.08);}
+.legend-row{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.legend-row span{font-size:11px;color:#555;}
+.swatch{display:flex;gap:2px;}
+.swatch div{width:14px;height:8px;border-radius:2px;}
+.insight{font-size:13px;color:#666;margin-top:10px;padding-top:10px;border-top:0.5px solid #2a2d35;line-height:1.6;}
+.disclaimer{background:#1e1a10;border-left:3px solid #F0E2C3;border-radius:0 10px 10px 0;padding:12px 16px;font-size:14px;color:#F0E2C3bb;line-height:1.5;margin-bottom:24px;}
+.gran-wrap{display:flex;gap:4px;margin-bottom:12px;}
+.gran-btn{background:transparent;border:0.5px solid #2a2d35;border-radius:8px;padding:4px 12px;font-size:11px;color:#555;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.gran-btn.active{border-color:#C39CC0;color:#E4D3E8;}
+.fab{position:fixed;bottom:24px;right:24px;background:#C39CC0;color:#1a0d29;border:none;border-radius:50px;padding:14px 20px;font-size:14px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,0.4);cursor:pointer;font-family:'DM Sans',sans-serif;text-decoration:none;display:inline-block;}
+.year-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:800px){.year-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:560px){.year-grid{grid-template-columns:repeat(2,1fr);}}
+.ymonth{background:#1e2235;border-radius:10px;padding:8px;cursor:pointer;transition:all 0.15s;}
+.ymonth:hover{background:#252a3f;}
+.ymonth-title{font-size:11px;color:#9a9fb5;margin-bottom:6px;text-align:center;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;}
+.ymonth-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;}
+.yc{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;font-family:'DM Mono',monospace;line-height:1;}
+.yc-future{background:repeating-linear-gradient(45deg,rgba(255,255,255,0.03),rgba(255,255,255,0.03) 3px,rgba(255,255,255,0.09) 3px,rgba(255,255,255,0.09) 6px);color:rgba(255,255,255,0.3);}
+.yc-empty{background:transparent;}
+.yc-nodata{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.28);}
+.month-zoom-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;}
+.month-zoom-box{background:#161920;border:0.5px solid #2a2d35;border-radius:16px;padding:22px;max-width:440px;width:100%;max-height:88vh;overflow-y:auto;}
+.month-zoom-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.month-zoom-title{font-size:17px;font-weight:500;color:#E4D3E8;}
+.month-zoom-close{background:transparent;border:0.5px solid #2a2d35;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#888;cursor:pointer;flex-shrink:0;}
+.month-zoom-close:hover{border-color:#C39CC0;color:#C39CC0;}
+.mz-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.mz-day{font-size:10px;color:#666;text-align:center;margin-bottom:2px;}
+.mz-cell{border-radius:6px;min-height:48px;padding:4px;display:flex;flex-direction:column;justify-content:space-between;border:0.5px solid rgba(228,211,232,0.15);}
+.mz-cell-day{font-size:12px;font-weight:600;}
+.mz-cell-int{font-family:'DM Mono',monospace;font-size:13px;font-weight:600;}
+.loc-view-pills{display:flex;gap:6px;margin-bottom:12px;}
+.loc-pill{background:transparent;border:0.5px solid #2a2d35;border-radius:8px;padding:5px 12px;font-size:12px;color:#888;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.15s;}
+.loc-pill.active{border-color:#C39CC0;color:#E4D3E8;}
+.trend-note{font-size:13px;color:#C39CC0;margin-top:10px;padding:10px 12px;background:#1e1030;border-radius:0 8px 8px 0;border-left:3px solid #C39CC0;line-height:1.6;}
+.rec-card{background:#161920;border:0.5px solid #2a2d35;border-left:3px solid #8FBF7A;border-radius:0 12px 12px 0;padding:16px 18px;margin-bottom:12px;}
+.rec-cat{font-size:11px;color:#8FBF7A;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;font-weight:600;}
+.rec-text{font-size:14px;color:#ddd;line-height:1.6;margin-bottom:6px;}
+.rec-evidence{font-size:12px;color:#666;font-family:'DM Mono',monospace;}
+.rec-empty{font-size:13px;color:#555;text-align:center;padding:30px 0;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<a href="saisie.html" class="fab">+ Saisie</a>
+<script>
+const gc='rgba(255,255,255,0.04)';const tc='#555';
+let charts=[];let rawSuivi=[];let rawSymptomes=[];let rawSolutions=[];let episodes=[];let currentTab='overview';
+const MOIS=['jan.','fev.','mar.','avr.','mai','juin','juil.','aout','sep.','oct.','nov.','dec.'];
+const WORKER_URL = 'https://suivi-migraines.dashboard-suivi.workers.dev';
+
+function mkChart(id,cfg){const el=document.getElementById(id);if(!el)return;const c=new Chart(el,cfg);charts.push(c);return c;}
+function destroyCharts(){charts.forEach(c=>{try{c.destroy();}catch(e){}});charts=[];}
+function parseNum(v){if(v==null||v==='')return null;const n=parseFloat(v.toString().replace(',','.'));return isNaN(n)?null:n;}
+function avg(arr){const v=arr.filter(x=>x!=null&&!isNaN(x));return v.length?v.reduce((a,b)=>a+b,0)/v.length:null;}
+function median(arr){const v=arr.filter(x=>x!=null&&!isNaN(x)).slice().sort((a,b)=>a-b);if(!v.length)return null;const mid=Math.floor(v.length/2);return v.length%2?v[mid]:(v[mid-1]+v[mid])/2;}
+const LOC_SYMMETRY={'Unilatérale (droit)':'Droite','Unilatérale (gauche)':'Gauche','Bilatérale':'Bilatérale'};
+const LOC_TYPE=['Frontale','Temporale','Orbitale','Diffuse'];
+let locView='type';
+function setLocView(v){locView=v;renderDashboard();}
+let delaiView='efficacite';
+function setDelaiView(v){delaiView=v;renderDashboard();}
+function parseDateStr(str){if(!str)return null;const p=str.split('/');if(p.length<3)return null;return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));}
+function formatDate(str){if(!str)return '--';const p=str.split('/');if(p.length<3)return str;return parseInt(p[0])+' '+MOIS[parseInt(p[1])-1]+' '+p[2];}
+function toMin(str){if(!str)return null;const p=str.toString().trim().split(':');if(p.length<2)return null;const h=parseInt(p[0]);const m=parseInt(p[1]);if(isNaN(h)||isNaN(m))return null;return h*60+m;}
+function isTrue(v){return v===true||v==='TRUE'||v==='Vrai'||v==='vrai'||v===1||v==='1';}
+function splitMulti(str){if(!str)return[];return str.split(',').map(s=>s.trim()).filter(Boolean);}
+function maxIntensite(ep){
+  const i1=parseNum(ep.suivi.Intensite_max_1);
+  const i2=parseNum(ep.suivi.Intensite_max_2);
+  if(i1==null&&i2==null) return null;
+  return Math.max(i1==null?-Infinity:i1, i2==null?-Infinity:i2);
+}
+function episodeTooltip(e){
+  const lines=['Épisode #'+e.suivi.ID_episode];
+  if(e.suivi.Heure_debut) lines.push('Début : '+e.suivi.Heure_debut);
+  const hd=toMin(e.suivi.Heure_debut), hp=toMin(e.suivi.Prise_1_heure);
+  if(hd!=null&&hp!=null){
+    let diff=hp-hd; if(diff<0)diff+=1440;
+    lines.push('Délai avant prise : '+(Math.round(diff/60*10)/10)+'h');
+  }
+  if(e.suivi.Duree) lines.push('Durée : '+e.suivi.Duree+'h');
+  const mi=maxIntensite(e);
+  if(mi!=null) lines.push('Intensité max : '+mi+'/5');
+  if(e.suivi.Localisation_douleur) lines.push('Localisation : '+e.suivi.Localisation_douleur);
+  return lines.join('\n');
+}
+
+async function fetchSheet(sheetName){
+  const url=WORKER_URL+'?sheet='+encodeURIComponent(sheetName);
+  const r=await fetch(url);
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error((e.error&&e.error.message)||'Erreur '+r.status);}
+  const d=await r.json();
+  if(d.error) throw new Error(d.error.message||'Erreur de lecture');
+  if(!d.values||d.values.length<2)return[];
+  const[headers,...rows]=d.values;
+  return rows.map(row=>{const o={};headers.forEach((h,i)=>o[h.trim()]=row[i]||'');return o;});
+}
+
+async function startWithKey(){
+  document.getElementById('root').innerHTML='<div class="loading"><div class="spinner"></div><div class="load-text">Connexion à Google Sheets…</div></div>';
+  try{
+    [rawSuivi,rawSymptomes,rawSolutions]=await Promise.all([fetchSheet('Suivi'),fetchSheet('Symptômes'),fetchSheet('Solutions')]);
+    buildEpisodes();
+    renderDashboard();
+  }catch(e){
+    document.getElementById('root').innerHTML='<div style="padding:40px 24px;"><div class="error-box">Impossible de charger les données.<br><br>'+e.message+'<br><br><button onclick="startWithKey()" style="margin-top:12px;background:#C39CC0;border:none;border-radius:8px;padding:10px 20px;color:#1a0d29;cursor:pointer;font-size:13px;">Réessayer</button></div></div>';
+  }
+}
+
+function buildEpisodes(){
+  const symById={};rawSymptomes.forEach(r=>symById[r.ID_episode]=r);
+  const solById={};rawSolutions.forEach(r=>solById[r.ID_episode]=r);
+  episodes=rawSuivi.filter(r=>r.ID_episode!=='').map(r=>({
+    suivi:r,
+    symptomes:symById[r.ID_episode]||{},
+    solutions:solById[r.ID_episode]||{}
+  })).sort((a,b)=>parseDateStr(a.suivi.Date_debut)-parseDateStr(b.suivi.Date_debut));
+}
+
+let calYearIdx=null;let calYearInitialized=false;let calAvailableYears=[];
+function intensiteBg(v){if(v==null)return'#1a1e2e';if(v>=5)return'#7a1030';if(v>=4)return'#a02050';if(v>=3)return'#c04570';if(v>=2)return'#c39cc0';return'#8fb8c9';}
+function intensiteTx(v){if(v==null)return'#3a3d45';return'#F2EAF0';}
+
+function buildYearCalendar(containerId){
+  if(!calYearInitialized){
+    const years=[...new Set(episodes.map(e=>{const d=parseDateStr(e.suivi.Date_debut);return d?d.getFullYear():null;}).filter(Boolean))];
+    const now=new Date();
+    calAvailableYears=years.length?years.slice():[now.getFullYear()];
+    if(!calAvailableYears.includes(now.getFullYear()))calAvailableYears.push(now.getFullYear());
+    calAvailableYears=[...new Set(calAvailableYears)].sort((a,b)=>a-b);
+    calYearIdx=calAvailableYears.includes(now.getFullYear())?now.getFullYear():calAvailableYears[calAvailableYears.length-1];
+    calYearInitialized=true;
+  }
+  const year=calYearIdx;
+  const today=new Date();today.setHours(0,0,0,0);
+  const byDay={};
+  episodes.forEach(e=>{
+    const d=parseDateStr(e.suivi.Date_debut);
+    if(d&&d.getFullYear()===year){const k=d.getMonth()+'-'+d.getDate();if(!byDay[k])byDay[k]=[];byDay[k].push(e);}
+  });
+  const idxInList=calAvailableYears.indexOf(year);
+  const prevDis=idxInList<=0?'disabled':'';
+  const nextDis=idxInList>=calAvailableYears.length-1?'disabled':'';
+  const monthsFull=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const monthsHtml=monthsFull.map((mNom,mo)=>{
+    const daysInMonth=new Date(year,mo+1,0).getDate();
+    const firstDay=(new Date(year,mo,1).getDay()+6)%7;
+    let cellsHtml='';
+    for(let i=0;i<firstDay;i++)cellsHtml+='<div class="yc yc-empty"></div>';
+    for(let d=1;d<=daysInMonth;d++){
+      const cellDate=new Date(year,mo,d);
+      const isFuture=cellDate>today;
+      const dayEps=byDay[mo+'-'+d];
+      if(dayEps&&dayEps.length){
+        const ints=dayEps.map(e=>maxIntensite(e)).filter(v=>v!=null);
+        const dm=ints.length?Math.max(...ints):null;
+        const title=dayEps.map(e=>episodeTooltip(e)).join('\n———\n');
+        cellsHtml+='<div class="yc" style="background:'+intensiteBg(dm)+';color:'+intensiteTx(dm)+';" title="'+title.replace(/"/g,'&quot;')+'">'+d+'</div>';
+      } else if(isFuture){
+        cellsHtml+='<div class="yc yc-future">'+d+'</div>';
+      } else {
+        cellsHtml+='<div class="yc yc-nodata">'+d+'</div>';
+      }
+    }
+    return '<div class="ymonth" onclick="openMonthZoom('+year+','+mo+')"><div class="ymonth-title">'+mNom+'</div><div class="ymonth-grid">'+cellsHtml+'</div></div>';
+  }).join('');
+  const container=document.getElementById(containerId);
+  container.innerHTML='<div class="heatmap-controls"><div class="nav-grp"><button class="arrow-btn" onclick="calYearPrev()" '+prevDis+'>‹</button><div class="month-name">'+year+'</div><button class="arrow-btn" onclick="calYearNext()" '+nextDis+'>›</button></div></div>'
+    +'<div class="year-grid">'+monthsHtml+'</div>'
+    +'<div class="legend-row"><span>Faible</span><div class="swatch"><div style="background:#8fb8c9;"></div><div style="background:#c39cc0;"></div><div style="background:#c04570;"></div><div style="background:#a02050;"></div><div style="background:#7a1030;"></div></div><span>Sévère</span><span style="margin-left:12px;">Jours à venir hachurés · clique un mois pour zoomer</span></div>';
+}
+function calYearPrev(){const idx=calAvailableYears.indexOf(calYearIdx);if(idx>0){calYearIdx=calAvailableYears[idx-1];renderDashboard();}}
+function calYearNext(){const idx=calAvailableYears.indexOf(calYearIdx);if(idx<calAvailableYears.length-1){calYearIdx=calAvailableYears[idx+1];renderDashboard();}}
+
+function openMonthZoom(year,mo){
+  const monthsFull=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const today=new Date();today.setHours(0,0,0,0);
+  const byDay={};
+  episodes.forEach(e=>{const d=parseDateStr(e.suivi.Date_debut);if(d&&d.getFullYear()===year&&d.getMonth()===mo){const k=d.getDate();if(!byDay[k])byDay[k]=[];byDay[k].push(e);}});
+  const daysInMonth=new Date(year,mo+1,0).getDate();
+  const firstDay=(new Date(year,mo,1).getDay()+6)%7;
+  let cellsHtml='';
+  const dayLbls=['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].map(d=>'<div class="mz-day">'+d+'</div>').join('');
+  for(let i=0;i<firstDay;i++)cellsHtml+='<div></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const cellDate=new Date(year,mo,d);
+    const isFuture=cellDate>today;
+    const dayEps=byDay[d];
+    if(dayEps&&dayEps.length){
+      const ints=dayEps.map(e=>maxIntensite(e)).filter(v=>v!=null);
+      const dm=ints.length?Math.max(...ints):null;
+      const title=dayEps.map(e=>episodeTooltip(e)).join('\n———\n');
+      cellsHtml+='<div class="mz-cell" style="background:'+intensiteBg(dm)+';" title="'+title.replace(/"/g,'&quot;')+'"><div class="mz-cell-day" style="color:'+intensiteTx(dm)+';">'+d+'</div>'+(dm!=null?'<div class="mz-cell-int" style="color:'+intensiteTx(dm)+';">'+dm+'</div>':'')+'</div>';
+    } else if(isFuture){
+      cellsHtml+='<div class="mz-cell yc-future"><div class="mz-cell-day">'+d+'</div></div>';
+    } else {
+      cellsHtml+='<div class="mz-cell" style="background:rgba(255,255,255,0.05);"><div class="mz-cell-day" style="color:rgba(255,255,255,0.28);">'+d+'</div></div>';
+    }
+  }
+  const overlay=document.createElement('div');overlay.className='month-zoom-overlay';overlay.id='month-zoom-overlay';
+  overlay.onclick=(e)=>{if(e.target===overlay)closeMonthZoom();};
+  const box=document.createElement('div');box.className='month-zoom-box';
+  box.innerHTML='<div class="month-zoom-head"><div class="month-zoom-title">'+monthsFull[mo]+' '+year+'</div><button class="month-zoom-close" onclick="closeMonthZoom()">✕</button></div>'
+    +'<div class="mz-cal">'+dayLbls+cellsHtml+'</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+function closeMonthZoom(){const ov=document.getElementById('month-zoom-overlay');if(ov)ov.remove();}
+
+function weekKey(d){const day=d.getDay()===0?6:d.getDay()-1;const mon=new Date(d.getFullYear(),d.getMonth(),d.getDate()-day);return mon.getFullYear()+'-'+String(mon.getMonth()+1).padStart(2,'0')+'-'+String(mon.getDate()).padStart(2,'0');}
+
+function countByCategory(items,fieldExtractor){
+  const m={};
+  items.forEach(it=>{const vals=fieldExtractor(it);vals.forEach(v=>{if(v)m[v]=(m[v]||0)+1;});});
+  return Object.entries(m).sort((a,b)=>b[1]-a[1]);
+}
+
+function pearson(a,b){const pairs=a.map((v,i)=>[v,b[i]]).filter(([x,y])=>x!=null&&y!=null);if(pairs.length<3)return null;const mx=avg(pairs.map(p=>p[0]));const my=avg(pairs.map(p=>p[1]));const num=pairs.reduce((s,[x,y])=>s+(x-mx)*(y-my),0);const da=Math.sqrt(pairs.reduce((s,[x])=>s+(x-mx)**2,0));const db=Math.sqrt(pairs.reduce((s,[,y])=>s+(y-my)**2,0));return(da===0||db===0)?null:num/(da*db);}
+function fmtH(m){if(m==null||typeof m!=='number')return null;const h=Math.floor(m/60);const mn=Math.round(m%60);return String(h).padStart(2,'0')+'h'+String(mn).padStart(2,'0');}
+const DAY_START_MIN=7*60; // la "journée type" démarre à 7h pour l'axe des heures de début
+function toDayMinutes(m){let v=m-DAY_START_MIN;if(v<0)v+=1440;return v;}
+function fmtDayMinutes(v){let m=v+DAY_START_MIN;if(m>=1440)m-=1440;const h=Math.floor(m/60);return h+'h';}
+function corrColor(v){
+  if(v==null)return{bg:'#161920',tx:'#333'};
+  const av=Math.abs(v);
+  if(v>=0){
+    if(av>=0.8)return{bg:'#0e5563',tx:'#E8F4F5'};
+    if(av>=0.6)return{bg:'#154651',tx:'#DCECE9'};
+    if(av>=0.4)return{bg:'#1a3a45',tx:'#C3DEDD'};
+    if(av>=0.2)return{bg:'#213540',tx:'#8FB0B5'};
+    return{bg:'#1e2235',tx:'#555'};
+  } else {
+    if(av>=0.8)return{bg:'#6b1f6f',tx:'#F5E4F7'};
+    if(av>=0.6)return{bg:'#4f2258',tx:'#E8D0EC'};
+    if(av>=0.4)return{bg:'#352040',tx:'#D4B8E8'};
+    if(av>=0.2)return{bg:'#2a2030',tx:'#9E86A8'};
+    return{bg:'#1e2235',tx:'#555'};
+  }
+}
+
+function renderDashboard(){
+  destroyCharts();
+
+  const now=new Date();
+  const thisMonthEps=episodes.filter(e=>{const d=parseDateStr(e.suivi.Date_debut);return d&&d.getFullYear()===now.getFullYear()&&d.getMonth()===now.getMonth();});
+  const durees=episodes.map(e=>parseNum(e.suivi.Duree)).filter(v=>v!=null);
+  const avgDuree=avg(durees);
+  const medianDuree=median(durees);
+  const intensites=episodes.map(e=>maxIntensite(e)).filter(v=>v!=null);
+  const avgIntensite=avg(intensites);
+
+  // récurrence : intervalle moyen entre épisodes (jours) + tendance sur 30 jours glissants
+  const sortedStartDates=episodes.map(e=>parseDateStr(e.suivi.Date_debut)).filter(Boolean).sort((a,b)=>a-b);
+  let avgIntervalDays=null;
+  if(sortedStartDates.length>=2){
+    const spanDays=(sortedStartDates[sortedStartDates.length-1]-sortedStartDates[0])/86400000;
+    avgIntervalDays=spanDays/(sortedStartDates.length-1);
+  }
+  const d30=30*86400000;
+  const last30=episodes.filter(e=>{const d=parseDateStr(e.suivi.Date_debut);return d&&(now-d)>=0&&(now-d)<d30;}).length;
+  const prev30=episodes.filter(e=>{const d=parseDateStr(e.suivi.Date_debut);return d&&(now-d)>=d30&&(now-d)<2*d30;}).length;
+  let recurrenceTrend=null;
+  if(prev30>0){
+    const delta=last30-prev30;
+    const pct=Math.round(Math.abs(delta)/prev30*100);
+    recurrenceTrend=(delta===0?'Stable':(delta>0?'En hausse de '+pct+'%':'En baisse de '+pct+'%'))+' par rapport aux 30 jours précédents ('+last30+' vs '+prev30+').';
+  } else if(last30>0){
+    recurrenceTrend=last30+' épisode'+(last30>1?'s':'')+' sur les 30 derniers jours (aucun épisode sur les 30 jours précédents, pas de comparaison possible).';
+  }
+
+  const declCounts=countByCategory(episodes,e=>splitMulti(e.suivi['Facteur_declencheur_princ.']));
+  const locTypeCounts=countByCategory(episodes,e=>splitMulti(e.suivi.Localisation_douleur).filter(v=>LOC_TYPE.includes(v)));
+  const locSymCounts=countByCategory(episodes,e=>splitMulti(e.suivi.Localisation_douleur).map(v=>LOC_SYMMETRY[v]).filter(Boolean));
+  const locAssocCounts=countByCategory(episodes,e=>{const v=e.suivi.Localisation_douleur;return v?[splitMulti(v).sort().join(' + ')]:[];});
+  const locCountsByView={type:locTypeCounts,sym:locSymCounts,assoc:locAssocCounts};
+  const medCounts=countByCategory(episodes,e=>[...splitMulti(e.suivi.Prise_1_medicament),...splitMulti(e.suivi.Prise_2_medicament)]);
+
+  // efficacité en fonction du délai entre le début de l'épisode et la prise du médicament
+  // on distingue les prises où l'intervalle [début → prise] traverse une fenêtre de sommeil typique
+  // (approximation : 1h-6h du matin) de celles où ce n'est pas le cas, car le sommeil peut "mettre en
+  // pause" la migraine indépendamment du délai lui-même. Comparer juste les dates ne suffit pas
+  // (ex: début à 1h, coucher à 2h, réveil encore migraineuse à la même date) — on regarde donc si
+  // l'intervalle recouvre effectivement une plage de sommeil probable, quelle que soit la date.
+  const SLEEP_WIN_START=60,SLEEP_WIN_END=360; // 1h à 6h, en minutes depuis minuit
+  function crossesSleepWindow(hd,delaiMin){
+    const end=hd+delaiMin;
+    for(const dayOffset of[0,1]){
+      const winStart=dayOffset*1440+SLEEP_WIN_START,winEnd=dayOffset*1440+SLEEP_WIN_END;
+      if(end>winStart&&hd<winEnd)return true;
+    }
+    return false;
+  }
+  const scatterDelaiEff=episodes.map(e=>{
+    const hd=toMin(e.suivi.Heure_debut),hp=toMin(e.suivi.Prise_1_heure);
+    const effRaw=e.suivi.Prise_1_efficacite;
+    const eff=effRaw?parseNum(String(effRaw).replace('%','')):null;
+    if(hd==null||hp==null||eff==null)return null;
+    let delaiMin=hp-hd;if(delaiMin<0)delaiMin+=1440;
+    const overnight=crossesSleepWindow(hd,delaiMin);
+    return{x:Math.round(delaiMin/60*10)/10,y:eff,overnight};
+  }).filter(Boolean);
+  const sameDayDelaiEff=scatterDelaiEff.filter(p=>!p.overnight);
+  const overnightDelaiEff=scatterDelaiEff.filter(p=>p.overnight);
+  const corrDelaiEff=pearson(sameDayDelaiEff.map(p=>p.x),sameDayDelaiEff.map(p=>p.y));
+
+  function combineDateTime(dateStr,heureStr){
+    const d=parseDateStr(dateStr);const m=toMin(heureStr);
+    if(!d||m==null)return null;
+    return new Date(d.getFullYear(),d.getMonth(),d.getDate(),Math.floor(m/60),m%60);
+  }
+  const scatterDelaiDuree=episodes.map(e=>{
+    const hd=toMin(e.suivi.Heure_debut),hp=toMin(e.suivi.Prise_1_heure);
+    const startPrise=combineDateTime(e.suivi.Prise_1_date,e.suivi.Prise_1_heure);
+    const endEpisode=combineDateTime(e.suivi.Date_fin,e.suivi.Heure_fin);
+    if(hd==null||hp==null||!startPrise||!endEpisode)return null;
+    let delaiMin=hp-hd;if(delaiMin<0)delaiMin+=1440;
+    const overnight=crossesSleepWindow(hd,delaiMin);
+    const dureeApres=(endEpisode-startPrise)/3600000;
+    if(dureeApres<0)return null;
+    const doublePrise=!!(splitMulti(e.suivi.Prise_2_medicament).length||e.suivi.Prise_2_date||e.suivi.Prise_2_heure);
+    return{x:Math.round(delaiMin/60*10)/10,y:Math.round(dureeApres*10)/10,overnight,doublePrise};
+  }).filter(Boolean);
+  const sameDayDelaiDuree=scatterDelaiDuree.filter(p=>!p.overnight);
+  const overnightDelaiDuree=scatterDelaiDuree.filter(p=>p.overnight);
+  const corrDelaiDureeAll=pearson(sameDayDelaiDuree.map(p=>p.x),sameDayDelaiDuree.map(p=>p.y));
+  const sameDayDelaiDureeSingle=sameDayDelaiDuree.filter(p=>!p.doublePrise);
+  const corrDelaiDureeSingle=pearson(sameDayDelaiDureeSingle.map(p=>p.x),sameDayDelaiDureeSingle.map(p=>p.y));
+  const doublePriseCount=sameDayDelaiDuree.length-sameDayDelaiDureeSingle.length;
+  // on n'exclut les épisodes à double prise que si leur présence inverse le sens de la corrélation
+  let corrDelaiDuree=corrDelaiDureeAll,doublePriseNote='';
+  if(doublePriseCount>0&&corrDelaiDureeAll!=null&&corrDelaiDureeSingle!=null&&Math.sign(corrDelaiDureeAll)!==Math.sign(corrDelaiDureeSingle)){
+    corrDelaiDuree=corrDelaiDureeSingle;
+    doublePriseNote=' '+doublePriseCount+' épisode'+(doublePriseCount>1?'s':'')+' ayant nécessité une 2e prise '+(doublePriseCount>1?'ont':'a')+' été exclu'+(doublePriseCount>1?'s':'')+' de ce calcul : leur présence inversait la tendance observée (probablement parce qu\'une 2e prise reflète un échec du traitement initial plutôt qu\'un effet du délai lui-même).';
+  }
+
+  const symptomeFields=[['Sens._lumière','Sensibilité à la lumière'],['Sens._bruit','Sensibilité au bruit'],['Sens._vestib','Sensibilité vestibulaire'],['Fatigue','Fatigue'],['Auras','Aura'],['Vertiges','Vertiges'],['Acc._difficile','Accommodation difficile']];
+  const symptomeCounts=symptomeFields.map(([k,l])=>[l,episodes.filter(e=>isTrue(e.symptomes[k])).length]).sort((a,b)=>b[1]-a[1]);
+
+  const solutionFields=[['Lum._reduite','Lumière réduite'],['Isolement_noir','Isolement dans le noir'],['Limit._ecrans','Limitation des écrans'],['Sortie_ext','Sortie extérieure'],['Sommeil','Sommeil'],['Douche','Douche'],['Port_lunettes','Port des lunettes'],['Medicament','Médicament pris']];
+  const solutionCounts=solutionFields.map(([k,l])=>[l,episodes.filter(e=>isTrue(e.solutions[k])).length]).sort((a,b)=>b[1]-a[1]);
+  const solutionEffData=solutionFields.map(([k,l])=>{
+    const effOf=e=>{const v=e.suivi.Prise_1_efficacite;return v?parseNum(String(v).replace('%','')):null;};
+    const withVals=episodes.filter(e=>isTrue(e.solutions[k])).map(effOf).filter(v=>v!=null);
+    const withoutVals=episodes.filter(e=>!isTrue(e.solutions[k])).map(effOf).filter(v=>v!=null);
+    return{label:l,withAvg:avg(withVals),withoutAvg:avg(withoutVals),n:withVals.length};
+  }).filter(s=>s.n>=2&&s.withAvg!=null&&s.withoutAvg!=null);
+
+  const intensiteDist=[1,2,3,4,5].map(n=>episodes.filter(e=>maxIntensite(e)===n).length);
+
+  const heureDebutBuckets=Array(24).fill(0);
+  episodes.forEach(e=>{const m=toMin(e.suivi.Heure_debut);if(m!=null)heureDebutBuckets[Math.floor(m/60)]++;});
+  const peakHourIdx=heureDebutBuckets.indexOf(Math.max(...heureDebutBuckets));
+  const peakHourCount=heureDebutBuckets[peakHourIdx];
+  const heureTrend=peakHourCount>0?('Les épisodes débutent le plus souvent entre '+peakHourIdx+'h et '+(peakHourIdx+1)+'h ('+peakHourCount+' épisode'+(peakHourCount>1?'s':'')+' sur '+episodes.length+').'):null;
+  // journée type : 7h → 2h du matin (plus logique qu'un simple 0h-23h, la soirée déborde souvent après minuit)
+  const HOUR_ORDER=[];
+  for(let h=7;h<=23;h++)HOUR_ORDER.push(h);
+  for(let h=0;h<=2;h++)HOUR_ORDER.push(h);
+  const heureDebutOrdered=HOUR_ORDER.map(h=>heureDebutBuckets[h]);
+  const heureLabelsOrdered=HOUR_ORDER.map(h=>h+'h');
+
+  const joursNoms=['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'];
+  const jourCounts=Array(7).fill(0);
+  episodes.forEach(e=>{const d=parseDateStr(e.suivi.Date_debut);if(d){const idx=d.getDay()===0?6:d.getDay()-1;jourCounts[idx]++;}});
+  const peakJourIdx=jourCounts.indexOf(Math.max(...jourCounts));
+  const peakJourCount=jourCounts[peakJourIdx];
+  const jourTrend=peakJourCount>0?(joursNoms[peakJourIdx]+' est le jour le plus représenté ('+peakJourCount+' épisode'+(peakJourCount>1?'s':'')+' sur '+episodes.length+').'):null;
+
+  const dureeBins=[0,2,4,6,8,10,12,16,20,24];
+  const dureeBinData=dureeBins.slice(0,-1).map((b,i)=>durees.filter(d=>d>=b&&d<dureeBins[i+1]).length);
+  const peakDureeIdx=dureeBinData.indexOf(Math.max(...dureeBinData));
+  const peakDureeCount=dureeBinData[peakDureeIdx];
+  const dureeTrend=peakDureeCount>0?('La tranche '+dureeBins[peakDureeIdx]+'-'+dureeBins[peakDureeIdx+1]+'h est la plus fréquente ('+peakDureeCount+' épisode'+(peakDureeCount>1?'s':'')+'). Durée médiane : '+(medianDuree!=null?medianDuree.toFixed(1).replace('.',','):'--')+'h.'):null;
+
+  // médicament (ou association de médicaments) -> efficacité moyenne
+  const medEff={};
+  episodes.forEach(e=>{
+    [['Prise_1_medicament','Prise_1_efficacite'],['Prise_2_medicament','Prise_2_efficacite']].forEach(([mk,ek])=>{
+      const meds=splitMulti(e.suivi[mk]).slice().sort();
+      if(!meds.length)return;
+      const key=meds.join(' + ');
+      const effRaw=e.suivi[ek];
+      const eff=effRaw?parseNum(String(effRaw).replace('%','')):null;
+      if(eff!=null){
+        if(!medEff[key])medEff[key]=[];
+        medEff[key].push(eff);
+      }
+    });
+  });
+  const medEffEntries=Object.entries(medEff).map(([m,vals])=>[m,Math.round(avg(vals)),vals.length]).sort((a,b)=>b[1]-a[1]);
+
+  // données pour l'onglet Corrélations
+  const corrMetricsLabels=['Durée (h)','Intensité max','Heure début','Efficacité P1 (%)','Délai effet P1 (h)','Délai avant prise (h)'];
+  const corrArrays=[
+    episodes.map(e=>parseNum(e.suivi.Duree)),
+    episodes.map(e=>maxIntensite(e)),
+    episodes.map(e=>{const m=toMin(e.suivi.Heure_debut);return m!=null?toDayMinutes(m):null;}),
+    episodes.map(e=>{const v=e.suivi.Prise_1_efficacite;return v?parseNum(String(v).replace('%','')):null;}),
+    episodes.map(e=>parseNum(e.suivi.Prise_1_delais_effet)),
+    episodes.map(e=>{const hd=toMin(e.suivi.Heure_debut),hp=toMin(e.suivi.Prise_1_heure);if(hd==null||hp==null)return null;let d=hp-hd;if(d<0)d+=1440;return Math.round(d/60*10)/10;})
+  ];
+  const corrMatrix=corrArrays.map((a,i)=>corrArrays.map((b,j)=>i===j?1:pearson(a,b)));
+  let maxCorrVal=0,maxCorrI=-1,maxCorrJ=-1;
+  corrMatrix.forEach((row,i)=>row.forEach((v,j)=>{if(i<j&&v!=null&&Math.abs(v)>maxCorrVal){maxCorrVal=Math.abs(v);maxCorrI=i;maxCorrJ=j;}}));
+  const CORR_INTERP={
+    'Durée (h)/Intensité max':{pos:'Les épisodes les plus intenses ont tendance à durer plus longtemps.',neg:'Les épisodes les plus intenses ont tendance à être plus courts.'},
+    'Durée (h)/Heure début':{pos:'Les épisodes qui débutent plus tard dans la journée tendent à durer plus longtemps.',neg:'Les épisodes qui débutent plus tard dans la journée tendent à durer moins longtemps.'},
+    'Durée (h)/Efficacité P1 (%)':{pos:'Les épisodes les plus longs sont associés à une meilleure efficacité ressentie de la 1ère prise.',neg:'Les épisodes les plus longs sont associés à une efficacité ressentie plus faible de la 1ère prise.'},
+    'Durée (h)/Délai effet P1 (h)':{pos:'Plus l\'épisode est long, plus le médicament met de temps à faire effet.',neg:'Plus l\'épisode est long, plus le médicament agit rapidement.'},
+    'Durée (h)/Délai avant prise (h)':{pos:'Plus le médicament est pris tard après le début, plus l\'épisode dure longtemps au total.',neg:'Plus le médicament est pris tôt après le début, plus l\'épisode dure longtemps au total (à interpréter avec prudence — le sens de causalité n\'est pas déterminable ici).'},
+    'Intensité max/Heure début':{pos:'Les épisodes qui débutent plus tard dans la journée tendent à être plus intenses.',neg:'Les épisodes qui débutent plus tard dans la journée tendent à être moins intenses.'},
+    'Intensité max/Efficacité P1 (%)':{pos:'Les épisodes les plus intenses sont associés à une meilleure efficacité ressentie de la 1ère prise.',neg:'Les épisodes les plus intenses sont associés à une efficacité ressentie plus faible de la 1ère prise.'},
+    'Intensité max/Délai effet P1 (h)':{pos:'Les épisodes les plus intenses mettent plus de temps à répondre au médicament.',neg:'Les épisodes les plus intenses répondent plus vite au médicament.'},
+    'Intensité max/Délai avant prise (h)':{pos:'Plus le médicament est pris tard après le début, plus l\'intensité atteinte est élevée.',neg:'Plus le médicament est pris tôt après le début, plus l\'intensité atteinte est élevée (à interpréter avec prudence).'},
+    'Heure début/Efficacité P1 (%)':{pos:'Les épisodes qui débutent plus tard dans la journée répondent mieux au traitement.',neg:'Les épisodes qui débutent plus tôt dans la journée répondent mieux au traitement.'},
+    'Heure début/Délai effet P1 (h)':{pos:'Les épisodes qui débutent plus tard dans la journée mettent plus de temps à répondre au médicament.',neg:'Les épisodes qui débutent plus tard dans la journée répondent plus vite au médicament.'},
+    'Heure début/Délai avant prise (h)':{pos:'Plus un épisode débute tard dans la journée, plus le médicament est pris tardivement après le début.',neg:'Plus un épisode débute tôt dans la journée, plus le délai avant la prise du médicament tend à être long ; à l\'inverse, plus il débute tard, plus la prise intervient rapidement après le début.'},
+    'Efficacité P1 (%)/Délai effet P1 (h)':{pos:'Une efficacité ressentie plus forte est associée à un délai d\'action plus long — contre-intuitif, à interpréter avec prudence.',neg:'Une efficacité ressentie plus forte est associée à un délai d\'action plus court.'},
+    'Efficacité P1 (%)/Délai avant prise (h)':{pos:'Prendre le médicament plus tard après le début est associé à une meilleure efficacité ressentie.',neg:'Prendre le médicament plus tôt après le début est associé à une meilleure efficacité ressentie.'},
+    'Délai effet P1 (h)/Délai avant prise (h)':{pos:'Plus le médicament est pris tard après le début, plus il met de temps à agir une fois pris.',neg:'Plus le médicament est pris tôt après le début, plus il met de temps à agir une fois pris.'}
+  };
+  function corrPairText(i,j,r){
+    if(r==null)return null;
+    if(Math.abs(r)<0.05)return'Aucun lien notable entre '+corrMetricsLabels[i]+' et '+corrMetricsLabels[j]+'.';
+    const key1=corrMetricsLabels[i]+'/'+corrMetricsLabels[j],key2=corrMetricsLabels[j]+'/'+corrMetricsLabels[i];
+    const interp=CORR_INTERP[key1]||CORR_INTERP[key2];
+    if(!interp)return null;
+    return r>0?interp.pos:interp.neg;
+  }
+  const corrConclusion=maxCorrI>=0?((corrPairText(maxCorrI,maxCorrJ,corrMatrix[maxCorrI][maxCorrJ])||('Piste à surveiller : '+corrMetricsLabels[maxCorrI]+' et '+corrMetricsLabels[maxCorrJ]+' évoluent '+(corrMatrix[maxCorrI][maxCorrJ]>0?'dans le même sens':'en sens opposé')+'.'))+' (r = '+corrMatrix[maxCorrI][maxCorrJ].toFixed(2)+'). À confirmer sur davantage de données.'):'Pas assez de données pour dégager une corrélation exploitable.';
+
+  function corrText(r,labelPos,labelNeg){
+    if(r==null)return'Pas assez de données pour évaluer ce lien.';
+    if(Math.abs(r)<0.15)return'Aucun lien notable détecté dans les données actuelles (r = '+r.toFixed(2)+').';
+    const strength=Math.abs(r)>=0.4?'net':'léger';
+    return(r>0?labelPos:labelNeg)+' (r = '+r.toFixed(2)+', lien '+strength+').';
+  }
+  const heureIntText=corrText(corrMatrix[2][1],'Les épisodes qui débutent plus tard dans la journée tendent à être plus intenses.','Les épisodes qui débutent plus tard dans la journée tendent à être moins intenses.');
+  const heureDureeText=corrText(corrMatrix[2][0],'Les épisodes qui débutent plus tard dans la journée tendent à durer plus longtemps.','Les épisodes qui débutent plus tard dans la journée tendent à durer moins longtemps.');
+  const delaiEffText=corrText(corrDelaiEff,'Prendre le médicament plus tardivement après le début de l\'épisode (en écartant les cas où une nuit de sommeil s\'est écoulée entre-temps) est associé à une efficacité ressentie plus élevée — à confirmer sur davantage de données.','Prendre le médicament plus tôt après le début de l\'épisode est associé à une meilleure efficacité ressentie (hors cas où une nuit de sommeil s\'est écoulée entre-temps).')
+    +(overnightDelaiEff.length?' Sur '+sameDayDelaiEff.length+' prise'+(sameDayDelaiEff.length>1?'s':'')+' le même jour et '+overnightDelaiEff.length+' après une nuit de sommeil (exclues du calcul ci-dessus, la migraine semblant "en pause" pendant le sommeil).':'');
+  const delaiDureeText=corrText(corrDelaiDuree,'Plus le médicament est pris tard après le début de l\'épisode, plus la migraine met de temps à s\'estomper après la prise (hors cas où une nuit de sommeil s\'est écoulée entre-temps).','Plus le médicament est pris tôt après le début de l\'épisode, plus la migraine s\'estompe rapidement après la prise (hors cas où une nuit de sommeil s\'est écoulée entre-temps).')
+    +(overnightDelaiDuree.length?' Sur '+sameDayDelaiDuree.length+' prise'+(sameDayDelaiDuree.length>1?'s':'')+' le même jour et '+overnightDelaiDuree.length+' après une nuit de sommeil (exclues du calcul ci-dessus).':'')
+    +doublePriseNote;
+
+  const symptIntData=symptomeFields.map(([k,l])=>{
+    const withVals=episodes.filter(e=>isTrue(e.symptomes[k])).map(e=>maxIntensite(e)).filter(v=>v!=null);
+    const withoutVals=episodes.filter(e=>!isTrue(e.symptomes[k])).map(e=>maxIntensite(e)).filter(v=>v!=null);
+    return{label:l,withAvg:avg(withVals),withoutAvg:avg(withoutVals),n:withVals.length};
+  }).filter(s=>s.n>0);
+
+  let symptGapText=null;
+  if(symptIntData.length){
+    const withGap=symptIntData.map(s=>Object.assign({},s,{gap:(s.withAvg!=null&&s.withoutAvg!=null)?(s.withAvg-s.withoutAvg):null})).filter(s=>s.gap!=null);
+    if(withGap.length){
+      const mg=withGap.reduce((a,b)=>Math.abs(b.gap)>Math.abs(a.gap)?b:a);
+      symptGapText='Écart le plus marqué : la présence de « '+mg.label+' » est associée à une intensité '+(mg.gap>0?'plus élevée':'plus faible')+' en moyenne ('+mg.withAvg.toFixed(1)+' avec, contre '+mg.withoutAvg.toFixed(1)+' sans, sur '+mg.n+' épisode'+(mg.n>1?'s':'')+' concerné'+(mg.n>1?'s':'')+').';
+    }
+  }
+
+  // ---- Recommandations : synthèse des tendances les plus solides observées ci-dessus ----
+  function buildRecommendations(){
+    const recs=[];
+
+    if(corrDelaiEff!=null&&Math.abs(corrDelaiEff)>=0.3&&sameDayDelaiEff.length>=5){
+      if(corrDelaiEff<0){
+        recs.push({cat:'Moment de la prise',text:'Prendre le traitement rapidement après le début des symptômes plutôt que d\'attendre est associé à une meilleure efficacité ressentie.',evidence:'r = '+corrDelaiEff.toFixed(2)+' sur '+sameDayDelaiEff.length+' prises le même jour (hors nuits de sommeil)'});
+      } else {
+        recs.push({cat:'Moment de la prise',text:'Dans ton historique, attendre un peu avant de prendre le traitement est associé à une efficacité ressentie plus élevée — contre-intuitif, probablement lié à d\'autres facteurs (contexte, sévérité initiale). À ne pas suivre sans creuser davantage.',evidence:'r = '+corrDelaiEff.toFixed(2)+' sur '+sameDayDelaiEff.length+' prises le même jour'});
+      }
+    }
+
+    if(corrDelaiDuree!=null&&Math.abs(corrDelaiDuree)>=0.3&&sameDayDelaiDuree.length>=5){
+      if(corrDelaiDuree>0){
+        recs.push({cat:'Moment de la prise',text:'Un délai plus long avant la prise est aussi associé à une durée de migraine plus longue après la prise — cohérent avec l\'idée de ne pas trop attendre.',evidence:'r = '+corrDelaiDuree.toFixed(2)+' sur '+sameDayDelaiDuree.length+' prises le même jour'+(doublePriseNote?' (doubles prises exclues, voir onglet Corrélations)':'')});
+      }
+    }
+
+    const validMedEff=medEffEntries.filter(([,,n])=>n>=2);
+    if(validMedEff.length){
+      const best=validMedEff[0];
+      recs.push({cat:'Choix du traitement',text:'« '+best[0]+' » affiche l\'efficacité moyenne la plus élevée de ton historique parmi les options utilisées au moins 2 fois.',evidence:best[1]+'% en moyenne sur '+best[2]+' prise'+(best[2]>1?'s':'')});
+      if(validMedEff.length>1){
+        const worst=validMedEff[validMedEff.length-1];
+        if(best[1]-worst[1]>=25){
+          recs.push({cat:'Choix du traitement',text:'« '+worst[0]+' » affiche une efficacité nettement plus faible que « '+best[0]+' » dans ton historique — à surveiller si le choix du médicament dépend du contexte plutôt que d\'une préférence.',evidence:worst[1]+'% en moyenne sur '+worst[2]+' prise'+(worst[2]>1?'s':'')});
+        }
+      }
+    }
+
+    if(solutionEffData.length){
+      const helpful=solutionEffData.filter(s=>s.withAvg>s.withoutAvg).sort((a,b)=>(b.withAvg-b.withoutAvg)-(a.withAvg-a.withoutAvg));
+      if(helpful.length){
+        const top=helpful[0];
+        const gap=Math.round(top.withAvg-top.withoutAvg);
+        if(gap>=10){
+          recs.push({cat:'Solutions complémentaires',text:'Les épisodes où « '+top.label+' » a été mise en place affichent une efficacité ressentie plus élevée que les autres.',evidence:Math.round(top.withAvg)+'% avec, contre '+Math.round(top.withoutAvg)+'% sans, sur '+top.n+' épisode'+(top.n>1?'s':'')});
+        }
+      }
+    }
+
+    if(symptGapText){
+      recs.push({cat:'Signaux à surveiller',text:symptGapText,evidence:''});
+    }
+
+    if(heureTrend&&peakHourCount>=3){
+      recs.push({cat:'Anticipation',text:heureTrend+' Avoir le traitement à portée de main à cette période pourrait réduire le délai avant la prise.',evidence:''});
+    }
+    if(jourTrend&&peakJourCount>=3){
+      recs.push({cat:'Anticipation',text:jourTrend+' Repérer un facteur récurrent ce jour-là (rythme, activité, sommeil) pourrait éclairer un déclencheur.',evidence:''});
+    }
+    if(recurrenceTrend&&last30>prev30&&prev30>0){
+      recs.push({cat:'Anticipation',text:'La fréquence des épisodes est en hausse récemment — ça peut valoir la peine d\'en parler à un professionnel de santé si la tendance se confirme.',evidence:recurrenceTrend});
+    }
+
+    return recs;
+  }
+
+  const scatterHeureInt=episodes.map(e=>{const h=toMin(e.suivi.Heure_debut);const i=maxIntensite(e);return(h!=null&&i!=null)?{x:toDayMinutes(h),y:i}:null;}).filter(Boolean);
+  const scatterHeureDuree=episodes.map(e=>{const h=toMin(e.suivi.Heure_debut);const dr=parseNum(e.suivi.Duree);return(h!=null&&dr!=null)?{x:toDayMinutes(h),y:dr}:null;}).filter(Boolean);
+
+  // fréquence par semaine/mois
+  function freqSeries(gran){
+    const groups={};
+    episodes.forEach(e=>{const d=parseDateStr(e.suivi.Date_debut);if(!d)return;let k;if(gran==='semaine')k=weekKey(d);else k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');groups[k]=(groups[k]||0)+1;});
+    const keys=Object.keys(groups).sort();
+    const labels=keys.map(k=>gran==='semaine'?(k.slice(8,10)+'/'+k.slice(5,7)):(MOIS[parseInt(k.slice(5))-1]+' '+k.slice(2,4)));
+    return{labels,data:keys.map(k=>groups[k])};
+  }
+  let freqGran=window._freqGran||'mois';
+
+  const palette=['#C39CC0','#8FBF7A','#D4A060','#82B2C0','#F6C7B3','#DCECE9','#E08070'];
+
+  const filtersEmpty='';
+  let pageContent='';
+
+  if(currentTab==='overview'){
+    pageContent=
+'<div class="sec"><div class="slabel">Calendrier</div><div class="chart-card"><div id="cal-container"></div></div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Vue d\'ensemble</div>'+
+'<div class="kcard p"><div class="klabel">Épisodes enregistrés</div><div class="kval p">'+episodes.length+'</div><div class="ksub">dont <span style="color:#E4D3E8;">'+thisMonthEps.length+'</span> ce mois-ci</div></div>'+
+'<div class="kcard g"><div class="klabel">Récurrence</div><div class="kval g">'+(avgIntervalDays!=null?'1 tous les '+Math.round(avgIntervalDays)+' j':'--')+'</div><div class="ksub">'+(recurrenceTrend||'Pas assez de données pour une tendance.')+'</div></div>'+
+'<div class="grid3"><div class="mini"><div class="mini-l">Durée moyenne</div><div class="mini-v" style="color:#82B2C0;">'+(avgDuree!=null?avgDuree.toFixed(1).replace('.',',')+' h':'--')+'</div></div><div class="mini"><div class="mini-l">Durée médiane</div><div class="mini-v" style="color:#8FBF7A;">'+(medianDuree!=null?medianDuree.toFixed(1).replace('.',',')+' h':'--')+'</div></div><div class="mini"><div class="mini-l">Intensité max moyenne</div><div class="mini-v" style="color:#F6C7B3;">'+(avgIntensite!=null?avgIntensite.toFixed(1).replace('.',','):'--')+' / 5</div></div></div>'+
+'<div class="chart-card"><div class="ct">Fréquence des épisodes</div><div class="gran-wrap"><button class="gran-btn '+(freqGran==='mois'?'active':'')+'" onclick="setFreqGran(this,\'mois\')">Mois</button><button class="gran-btn '+(freqGran==='semaine'?'active':'')+'" onclick="setFreqGran(this,\'semaine\')">Semaine</button></div><div style="position:relative;width:100%;height:180px;"><canvas id="c_freq"></canvas></div></div>'+
+'</div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Intensité de la douleur</div><div class="chart-card"><div class="ct">Répartition par intensité maximale (échelle 1-5)</div><div style="position:relative;width:100%;height:180px;"><canvas id="c_int"></canvas></div></div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Localisation & déclencheurs</div>'+
+'<div class="grid2">'+
+'<div class="chart-card"><div class="ct">Localisation de la douleur</div><div class="loc-view-pills"><button class="loc-pill '+(locView==='type'?'active':'')+'" onclick="setLocView(\'type\')">Type</button><button class="loc-pill '+(locView==='sym'?'active':'')+'" onclick="setLocView(\'sym\')">Symétrie</button><button class="loc-pill '+(locView==='assoc'?'active':'')+'" onclick="setLocView(\'assoc\')">Associations</button></div><div style="position:relative;width:100%;height:220px;"><canvas id="c_loc"></canvas></div></div>'+
+'<div class="chart-card"><div class="ct">Facteurs déclencheurs</div>'+(declCounts.length?declCounts.map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/declCounts[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'</div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Traitements</div>'+
+'<div class="grid2">'+
+'<div class="chart-card"><div class="ct">Médicaments utilisés (fréquence)</div>'+(medCounts.length?medCounts.map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/medCounts[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'<div class="chart-card"><div class="ct">Efficacité moyenne par médicament (ou association)</div>'+(medEffEntries.length?medEffEntries.map(([nom,eff,n],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+eff+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+eff+'%</div></div>').join('')+'<div class="insight">Les associations (ex: "Ibuprofène + Dalféine") apparaissent comme catégories distinctes des médicaments seuls.</div>':'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'</div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Symptômes & solutions</div>'+
+'<div class="grid2">'+
+'<div class="chart-card"><div class="ct">Symptômes associés</div>'+(symptomeCounts.filter(s=>s[1]>0).length?symptomeCounts.filter(s=>s[1]>0).map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/episodes.length*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'<div class="chart-card"><div class="ct">Solutions mises en place</div>'+(solutionCounts.filter(s=>s[1]>0).length?solutionCounts.filter(s=>s[1]>0).map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/episodes.length*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'</div></div>';
+
+  } else if(currentTab==='analyses'){
+    pageContent='<div class="disclaimer">Données auto-rapportées · Sur '+episodes.length+' épisodes · Tendances descriptives, non causales.</div>'+
+'<div class="sec"><div class="slabel">Répartition temporelle</div>'+
+'<div class="grid2">'+
+'<div class="chart-card"><div class="ct">Heure de début des épisodes</div><div style="position:relative;width:100%;height:180px;"><canvas id="c_heure_debut"></canvas></div>'+(heureTrend?'<div class="trend-note">'+heureTrend+'</div>':'')+'</div>'+
+'<div class="chart-card"><div class="ct">Jour de la semaine</div><div style="position:relative;width:100%;height:180px;"><canvas id="c_jour"></canvas></div>'+(jourTrend?'<div class="trend-note">'+jourTrend+'</div>':'')+'</div>'+
+'</div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Durée des épisodes</div><div class="chart-card"><div class="ct">Distribution des durées (heures)</div><div style="position:relative;width:100%;height:180px;"><canvas id="c_duree"></canvas></div>'+(dureeTrend?'<div class="trend-note">'+dureeTrend+'</div>':'')+'</div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Limites de l\'analyse</div><div style="background:#1e1a10;border-left:3px solid #F0E2C3;border-radius:0 12px 12px 0;padding:14px 18px;"><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Données auto-rapportées — biais de perception possible</p><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Échantillon limité sur certains médicaments/déclencheurs</p><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Facteurs externes non mesurés (stress, sommeil, alimentation)</p><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Pas de contrôle sur les combinaisons de déclencheurs</p></div></div>';
+
+  } else if(currentTab==='correlations'){
+    pageContent='<div class="disclaimer">Analyses exploratoires · Corrélations descriptives, aucune causalité établie · Sur '+episodes.length+' épisodes.</div>'+
+'<div class="sec"><div class="slabel">Heure de début et sévérité</div><div class="grid2">'+
+'<div class="chart-card"><div class="ct">Heure de début vs intensité maximale</div><div style="position:relative;width:100%;height:220px;"><canvas id="c_corr_heure_int"></canvas></div><div class="insight">'+heureIntText+'</div></div>'+
+'<div class="chart-card"><div class="ct">Heure de début vs durée</div><div style="position:relative;width:100%;height:220px;"><canvas id="c_corr_heure_duree"></canvas></div><div class="insight">'+heureDureeText+'</div></div>'+
+'</div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Délai avant la prise et conséquences</div><div class="chart-card"><div class="ct">'+(delaiView==='efficacite'?'Efficacité ressentie selon le délai entre le début et la prise':'Durée entre la prise et la fin de l\'épisode selon le délai entre le début de l\'épisode et la prise')+'</div><div class="loc-view-pills"><button class="loc-pill '+(delaiView==='efficacite'?'active':'')+'" onclick="setDelaiView(\'efficacite\')">Efficacité</button><button class="loc-pill '+(delaiView==='duree'?'active':'')+'" onclick="setDelaiView(\'duree\')">Durée de l\'épisode</button></div><div class="legend"><span><span class="lsq" style="background:#D4A060;"></span>Même jour</span><span><span class="lsq" style="background:#6b7080;"></span>Après une nuit de sommeil</span></div><div style="position:relative;width:100%;height:220px;"><canvas id="c_corr_delai_eff"></canvas></div><div class="insight">'+(delaiView==='efficacite'?delaiEffText:delaiDureeText)+'</div></div></div>'+
+'<div class="divider"></div>'+
+(symptIntData.length?'<div class="sec"><div class="slabel">Symptômes et intensité</div><div class="chart-card"><div class="ct">Intensité moyenne selon la présence de chaque symptôme</div><div style="position:relative;width:100%;height:'+(60+symptIntData.length*46)+'px;"><canvas id="c_corr_sympt_int"></canvas></div><div class="insight">Pour chaque symptôme, compare l\'intensité moyenne des épisodes où il est présent contre ceux où il est absent.'+(symptGapText?'<br>'+symptGapText:'')+'</div></div></div><div class="divider"></div>':'')+
+'<div class="sec"><div class="slabel">Corrélations entre variables numériques</div><div class="chart-card"><div class="ct">Coefficients de corrélation (Pearson)</div><div id="corr-heatmap" style="display:flex;flex-direction:column;gap:3px;margin-bottom:10px;"></div><div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;"><span style="font-size:11px;color:#666;">Inverse forte</span><div style="display:flex;gap:2px;"><div style="width:14px;height:8px;border-radius:2px;background:#6b1f6f;"></div><div style="width:14px;height:8px;border-radius:2px;background:#4f2258;"></div><div style="width:14px;height:8px;border-radius:2px;background:#352040;"></div><div style="width:14px;height:8px;border-radius:2px;background:#2a2030;"></div></div><span style="font-size:11px;color:#666;">Neutre</span><div style="display:flex;gap:2px;"><div style="width:14px;height:8px;border-radius:2px;background:#213540;"></div><div style="width:14px;height:8px;border-radius:2px;background:#1a3a45;"></div><div style="width:14px;height:8px;border-radius:2px;background:#154651;"></div><div style="width:14px;height:8px;border-radius:2px;background:#0e5563;"></div></div><span style="font-size:11px;color:#666;">Directe forte</span></div><div class="insight">Survole une case pour une explication en clair. '+corrConclusion+'</div></div></div>'+
+'<div class="divider"></div>'+
+'<div class="sec"><div class="slabel">Limites de ces analyses exploratoires</div><div style="background:#1e1a10;border-left:3px solid #F0E2C3;border-radius:0 12px 12px 0;padding:14px 18px;"><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Corrélation ne veut pas dire causalité</p><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Échantillon encore restreint, les coefficients peuvent varier fortement avec plus de données</p><p style="font-size:13px;color:rgba(240,226,195,0.73);line-height:2;">· Facteurs de confusion possibles (ex: heure de début liée au jour de la semaine, lui-même lié à d\'autres facteurs)</p></div></div>';
+
+  } else if(currentTab==='recommandations'){
+    const recs=buildRecommendations();
+    const recsByCat={};
+    recs.forEach(r=>{if(!recsByCat[r.cat])recsByCat[r.cat]=[];recsByCat[r.cat].push(r);});
+    const catOrder=['Moment de la prise','Choix du traitement','Solutions complémentaires','Signaux à surveiller','Anticipation'];
+
+    pageContent='<div class="disclaimer">Ces observations sont générées automatiquement à partir de tes propres données (corrélations et comparaisons des onglets précédents). Ce ne sont pas des conseils médicaux — chaque point est accompagné de sa preuve chiffrée pour que tu puisses juger toi-même de sa solidité. Parles-en à un professionnel de santé avant d\'ajuster ton traitement.</div>'+
+      (recs.length?catOrder.filter(c=>recsByCat[c]).map(cat=>
+        '<div class="sec"><div class="slabel">'+cat+'</div>'+
+        recsByCat[cat].map(r=>'<div class="rec-card"><div class="rec-cat">'+r.cat+'</div><div class="rec-text">'+r.text+'</div>'+(r.evidence?'<div class="rec-evidence">'+r.evidence+'</div>':'')+'</div>').join('')+
+        '</div>'
+      ).join('<div class="divider"></div>')
+      :'<div class="rec-empty">Pas encore assez de données pour dégager des recommandations fiables. Reviens une fois que tu auras enregistré davantage d\'épisodes.</div>');
+  }
+
+  document.getElementById('root').innerHTML='<div class="app"><div class="cover"><div class="cover-top"><div><div class="mol">SUIVI · MIGRAINES</div><div class="ctitle">Suivi migraines</div><div class="csub">'+episodes.length+' épisodes enregistrés</div></div><button class="refresh-btn" onclick="location.reload()">↺ Actualiser</button></div><div class="cover-kpis"><div class="ckpi"><div class="ckpi-v">'+episodes.length+'</div><div class="ckpi-l">Épisodes totaux</div></div><div class="ckpi"><div class="ckpi-v">'+thisMonthEps.length+'</div><div class="ckpi-l">Ce mois-ci</div></div><div class="ckpi"><div class="ckpi-v">'+(avgDuree!=null?avgDuree.toFixed(1).replace('.',','):'--')+'h</div><div class="ckpi-l">Durée moyenne</div></div><div class="ckpi"><div class="ckpi-v">'+(medianDuree!=null?medianDuree.toFixed(1).replace('.',','):'--')+'h</div><div class="ckpi-l">Durée médiane</div></div><div class="ckpi"><div class="ckpi-v">'+(avgIntensite!=null?avgIntensite.toFixed(1).replace('.',','):'--')+'</div><div class="ckpi-l">Intensité moy. /5</div></div></div></div><div class="tabs-wrap"><div class="tabs"><button class="tab '+(currentTab==='overview'?'active':'')+'" onclick="switchTab(\'overview\')">Chiffres clés</button><button class="tab '+(currentTab==='analyses'?'active':'')+'" onclick="switchTab(\'analyses\')">Analyses</button><button class="tab '+(currentTab==='correlations'?'active':'')+'" onclick="switchTab(\'correlations\')">Corrélations</button><button class="tab '+(currentTab==='recommandations'?'active':'')+'" onclick="switchTab(\'recommandations\')">Recommandations</button></div></div><div id="page-content">'+pageContent+'</div></div>';
+
+  if(currentTab==='overview'){
+    buildYearCalendar('cal-container');
+
+    const fs=freqSeries(freqGran);
+    mkChart('c_freq',{type:'bar',data:{labels:fs.labels,datasets:[{data:fs.data,backgroundColor:'#C39CC0',borderRadius:5,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw+' épisode'+(ctx.raw>1?'s':'')}}},scales:{x:{ticks:{color:tc,font:{size:13},maxRotation:0},grid:{color:gc}},y:{ticks:{color:tc,font:{size:13},stepSize:1},grid:{color:gc}}}}});
+
+    const locCounts=locCountsByView[locView];
+    if(locCounts.length){
+      mkChart('c_loc',{type:'doughnut',data:{labels:locCounts.map(l=>l[0]),datasets:[{data:locCounts.map(l=>l[1]),backgroundColor:palette,borderColor:'#161920',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'right',labels:{color:'#888',font:{size:13},boxWidth:10}},tooltip:{callbacks:{label:ctx=>ctx.label+' ('+ctx.raw+')'}}}}});
+    }
+
+    mkChart('c_int',{type:'bar',data:{labels:['1 · Légère','2 · Modérée','3 · Forte','4 · Sévère','5 · Extrême'],datasets:[{data:intensiteDist,backgroundColor:[1,2,3,4,5].map(n=>intensiteBg(n)),borderRadius:5,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc,font:{size:13}},grid:{color:gc}},y:{ticks:{color:tc,font:{size:13},stepSize:1},grid:{color:gc}}}}});
+  } else if(currentTab==='analyses'){
+    const heureColors=HOUR_ORDER.map(h=>h===peakHourIdx&&heureDebutBuckets[h]>0?'#C39CC0':'#82B2C044');
+    mkChart('c_heure_debut',{type:'bar',data:{labels:heureLabelsOrdered,datasets:[{data:heureDebutOrdered,backgroundColor:heureColors,borderRadius:4,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc,font:{size:12},maxRotation:0,callback:function(val,idx){return idx%2===0?heureLabelsOrdered[idx]:'';}},grid:{color:gc}},y:{ticks:{color:tc,font:{size:13},stepSize:1},grid:{color:gc}}}}});
+    const jourColors=jourCounts.map((v,i)=>i===peakJourIdx&&v>0?'#F6C7B3':'#F6C7B344');
+    mkChart('c_jour',{type:'bar',data:{labels:joursNoms,datasets:[{data:jourCounts,backgroundColor:jourColors,borderRadius:4,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc,font:{size:13}},grid:{color:gc}},y:{ticks:{color:tc,font:{size:13},stepSize:1},grid:{color:gc}}}}});
+
+    const dureeColors=dureeBinData.map((v,i)=>i===peakDureeIdx&&v>0?'#8FBF7A':'#8FBF7A44');
+    mkChart('c_duree',{type:'bar',data:{labels:dureeBins.slice(0,-1).map((b,i)=>b+'-'+dureeBins[i+1]+'h'),datasets:[{data:dureeBinData,backgroundColor:dureeColors,borderRadius:4,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:tc,font:{size:13},maxRotation:0},grid:{color:gc}},y:{ticks:{color:tc,font:{size:13},stepSize:1},grid:{color:gc}}}}});
+  } else if(currentTab==='correlations'){
+    const intColorSc=v=>intensiteBg(v);
+    mkChart('c_corr_heure_int',{type:'scatter',data:{datasets:[{data:scatterHeureInt,backgroundColor:scatterHeureInt.map(p=>intColorSc(p.y)),pointRadius:6,pointHoverRadius:8,clip:false}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:12}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmtDayMinutes(ctx.raw.x)+' → intensité '+ctx.raw.y}}},scales:{x:{ticks:{color:tc,font:{size:12},callback:fmtDayMinutes,stepSize:120},grid:{color:gc},min:0,max:1200},y:{ticks:{color:tc,font:{size:12},stepSize:1},grid:{color:gc},min:0,max:5.5}}}});
+
+    mkChart('c_corr_heure_duree',{type:'scatter',data:{datasets:[{data:scatterHeureDuree,backgroundColor:'#82B2C0',pointRadius:6,pointHoverRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmtDayMinutes(ctx.raw.x)+' → '+ctx.raw.y+' h'}}},scales:{x:{ticks:{color:tc,font:{size:12},callback:fmtDayMinutes,stepSize:120},grid:{color:gc},min:0,max:1200},y:{ticks:{color:tc,font:{size:12},callback:v=>v+'h'},grid:{color:gc}}}}});
+
+    if(delaiView==='efficacite'){
+      mkChart('c_corr_delai_eff',{type:'scatter',data:{datasets:[{data:scatterDelaiEff,backgroundColor:scatterDelaiEff.map(p=>p.overnight?'#6b7080':'#D4A060'),pointRadius:6,pointHoverRadius:8,clip:false}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:12,right:8}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw.x+'h après le début → '+ctx.raw.y+'% d\'efficacité'+(ctx.raw.overnight?' (sommeil probable entre-temps)':'')}}},scales:{x:{ticks:{color:tc,font:{size:12},callback:v=>v+'h'},grid:{color:gc},min:0},y:{ticks:{color:tc,font:{size:12},callback:v=>v+'%'},grid:{color:gc},min:0,max:100}}}});
+    } else {
+      mkChart('c_corr_delai_eff',{type:'scatter',data:{datasets:[{data:scatterDelaiDuree,backgroundColor:scatterDelaiDuree.map(p=>p.overnight?'#6b7080':'#D4A060'),pointRadius:6,pointHoverRadius:8,clip:false}]},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:12,right:8}},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw.x+'h après le début → '+ctx.raw.y+'h avant la fin de l\'épisode'+(ctx.raw.overnight?' (sommeil probable entre-temps)':'')}}},scales:{x:{ticks:{color:tc,font:{size:12},callback:v=>v+'h'},grid:{color:gc},min:0},y:{ticks:{color:tc,font:{size:12},callback:v=>v+'h'},grid:{color:gc},min:0}}}});
+    }
+
+    if(symptIntData.length){
+      mkChart('c_corr_sympt_int',{type:'bar',data:{labels:symptIntData.map(s=>s.label),datasets:[
+        {label:'Symptôme présent',data:symptIntData.map(s=>s.withAvg),backgroundColor:'#c04570',borderRadius:4,borderWidth:0,barPercentage:0.7,categoryPercentage:0.7},
+        {label:'Symptôme absent',data:symptIntData.map(s=>s.withoutAvg),backgroundColor:'#8fb8c9',borderRadius:4,borderWidth:0,barPercentage:0.7,categoryPercentage:0.7}
+      ]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:true,position:'top',labels:{color:'#aaa',font:{size:12}}},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+' : '+(ctx.raw!=null?ctx.raw.toFixed(1):'--')}}},scales:{x:{ticks:{color:tc,font:{size:12}},grid:{color:gc},min:0,max:5},y:{ticks:{color:tc,font:{size:13}},grid:{color:gc}}}}});
+    }
+
+    const hm=document.getElementById('corr-heatmap');
+    if(hm){
+      const nCols=corrMetricsLabels.length;
+      const grid='display:grid;grid-template-columns:110px repeat('+nCols+',1fr);gap:3px;min-width:'+(280+nCols*60)+'px;';
+      const hr=document.createElement('div');hr.style.cssText=grid;
+      hr.innerHTML='<div></div>'+corrMetricsLabels.map(m=>'<div style="font-size:11px;color:#888;text-align:center;padding:4px 2px;">'+m+'</div>').join('');
+      hm.appendChild(hr);
+      corrMatrix.forEach((row,i)=>{
+        const r=document.createElement('div');r.style.cssText=grid;
+        r.innerHTML='<div style="font-size:11px;color:#888;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">'+corrMetricsLabels[i]+'</div>'
+          +row.map((v,j)=>{
+            const c=i===j?{bg:'#161920',tx:'#333'}:corrColor(v);
+            const d=i===j?'—':(v!=null?v.toFixed(2):'--');
+            let tip='';
+            if(i!==j){
+              const txt=corrPairText(i,j,v);
+              tip=(txt?txt+' ':'')+(v!=null?'(r = '+v.toFixed(2)+')':'(pas assez de données)');
+            }
+            return'<div style="background:'+c.bg+';border-radius:4px;padding:8px 4px;text-align:center;font-size:12px;color:'+c.tx+';font-family:\'DM Mono\',monospace;cursor:'+(i!==j?'help':'default')+';" title="'+tip.replace(/"/g,'&quot;')+'">'+d+'</div>';
+          }).join('');
+        hm.appendChild(r);
+      });
+    }
+  }
+}
+
+function switchTab(tab){currentTab=tab;renderDashboard();}
+function setFreqGran(btn,g){btn.parentElement.querySelectorAll('.gran-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');window._freqGran=g;renderDashboard();}
+startWithKey();
+</script>
+</body>
+</html>
