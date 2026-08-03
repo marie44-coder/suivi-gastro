@@ -213,8 +213,17 @@ function renderDashboard(){
   const r=j.raw;
   let detail='';
   if(j.kind==='RGO'){
+    let gavDetail = '';
+    if(r['Gaviscon pris ?']==='Oui'){
+      gavDetail = 'Oui'+(r['Combien ? #1']?' ('+r['Combien ? #1']+')':'')+(r['Efficacité #1']?' — '+r['Efficacité #1']:'');
+      if(r['2e prise de Gaviscon ?']==='Oui'){
+        gavDetail += ' + 2e prise'+(r['Combien ? #2']?' ('+r['Combien ? #2']+')':'')+(r['Efficacité #2']?' — '+r['Efficacité #2']:'');
+      }
+    } else if(r['Gaviscon pris ?']==='Non'){
+      gavDetail = 'Non';
+    }
     detail = (r['Repas / aliment précédent']?'<b>Repas :</b> '+r['Repas / aliment précédent']+'<br>':'') +
-             (r['Gaviscon pris ?']?'<b>Gaviscon :</b> '+r['Gaviscon pris ?']+(r['Efficacité Gaviscon']?' — '+r['Efficacité Gaviscon']:'')+'<br>':'') +
+             (gavDetail?'<b>Gaviscon :</b> '+gavDetail+'<br>':'') +
              (r.Remarques?'<b>Remarques :</b> '+r.Remarques:'');
   } else {
     detail = (r['Localisation précise']?'<b>Localisation :</b> '+r['Localisation précise']+'<br>':'') +
@@ -229,8 +238,13 @@ function renderDashboard(){
 '<div class="sec"><div class="slabel">Aliments associés aux épisodes (RGO + EoE)</div><div class="chart-card"><div class="ct">Fréquence de citation</div>'+(alimentsCounts.length?alimentsCounts.slice(0,10).map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/alimentsCounts[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'<div class="insight">Ces aliments sont ceux mentionnés en texte libre dans les champs "repas précédent" (RGO) et "aliments 24-48h avant" (EoE) — un même aliment orthographié différemment sera compté séparément.</div></div></div>';
 
   } else if(currentTab==='rgo'){
-    const efficaciteCounts = countByCategory(rgo, r=>{const c=categEfficaciteGaviscon(r['Efficacité Gaviscon']);return c?[c]:[];});
+    const efficaciteCounts = countByCategory(rgo, r=>{
+      const c1 = categEfficaciteGaviscon(r['Efficacité #1']);
+      const c2 = r['2e prise de Gaviscon ?']==='Oui' ? categEfficaciteGaviscon(r['Efficacité #2']) : null;
+      return [c1,c2].filter(Boolean);
+    });
     const gaviscConsPris = rgo.filter(r=>isOui(r['Gaviscon pris ?'])).length;
+    const doublesPrises = rgo.filter(r=>isOui(r['2e prise de Gaviscon ?'])).length;
     const durees = rgo.map(r=>parseDureeH(r.Durée)).filter(v=>v!=null);
     const avgDuree = avg(durees);
     const timelineData = rgo.filter(r=>r.Date&&parseNum(r['Intensité (0-10)'])!=null).map(r=>({x:formatDate(r.Date),y:parseNum(r['Intensité (0-10)'])}));
@@ -242,7 +256,7 @@ function renderDashboard(){
 '</div>'+
 '<div class="divider"></div>'+
 '<div class="sec"><div class="slabel">Traitement</div><div class="grid2">'+
-'<div class="chart-card"><div class="ct">Gaviscon</div><div class="mini" style="margin-bottom:10px;"><div class="mini-l">Prises</div><div class="mini-v" style="color:#D4A060;">'+gaviscConsPris+' / '+rgo.length+' épisodes</div></div>'+(efficaciteCounts.length?'<div class="bar-name" style="width:auto;margin-bottom:6px;color:#888;">Efficacité ressentie</div>'+efficaciteCounts.map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/efficaciteCounts[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
+'<div class="chart-card"><div class="ct">Gaviscon</div><div class="mini" style="margin-bottom:10px;"><div class="mini-l">Prises</div><div class="mini-v" style="color:#D4A060;">'+gaviscConsPris+' / '+rgo.length+' épisodes</div></div>'+(doublesPrises>0?'<div class="ksub" style="margin-bottom:10px;">dont '+doublesPrises+' avec une 2e prise</div>':'')+(efficaciteCounts.length?'<div class="bar-name" style="width:auto;margin-bottom:6px;color:#888;">Efficacité ressentie</div>'+efficaciteCounts.map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/efficaciteCounts[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
 '<div class="chart-card"><div class="ct">Aliments précédant l\'épisode</div>'+(alimentsRGO.length?alimentsRGO.slice(0,8).map(([nom,cnt],i)=>'<div class="bar-row"><div class="bar-name">'+nom+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(cnt/alimentsRGO[0][1]*100)+'%;background:'+palette[i%palette.length]+';"></div></div><div class="bar-v" style="color:'+palette[i%palette.length]+';">'+cnt+'</div></div>').join(''):'<div class="no-data">Aucune donnée</div>')+'</div>'+
 '</div></div>'+
 '<div class="divider"></div>'+
