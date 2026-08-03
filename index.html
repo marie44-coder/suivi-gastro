@@ -85,16 +85,11 @@ let charts=[];let rawRGO=[];let rawEoE=[];let currentTab='overview';
 const MOIS=['jan.','fev.','mar.','avr.','mai','juin','juil.','aout','sep.','oct.','nov.','dec.'];
 
 /* ===================== CONFIGURATION =====================
-   ATTENTION : la fonction Netlify "sheets" utilisée par le dashboard migraines
-   a très probablement l'ID du classeur MPH codé en dur côté serveur (le fetch
-   ne transmet qu'un paramètre "sheet", jamais d'ID de classeur). Pour que CE
-   dashboard lise le bon classeur (suivi_symptomes_EoE_RGO), il faut soit :
-   - rendre la fonction Netlify existante paramétrable via ?spreadsheetId=...
-   - soit créer une fonction dédiée (ex: sheets-gastro.js) pointant sur ce classeur
-   Le fetch ci-dessous transmet spreadsheetId ; adapte l'URL si ta fonction
-   utilise un autre nom de paramètre ou un endpoint séparé. */
-const WORKER_URL = '/.netlify/functions/sheets';
-const SHEET_ID = 'REMPLACER_PAR_ID_DU_CLASSEUR_GASTRO';
+   Lecture des données via un Cloudflare Worker dédié à CE classeur
+   (même principe que suivi-migraines.dashboard-suivi.workers.dev,
+   mais un Worker distinct configuré pour le classeur suivi_symptomes_EoE_RGO).
+   Remplace par l'URL du Worker une fois déployé. */
+const WORKER_URL = 'https://suivi-gastro.dashboard-suivi.workers.dev';
 /* =========================================================== */
 
 function mkChart(id,cfg){const el=document.getElementById(id);if(!el)return;const c=new Chart(el,cfg);charts.push(c);return c;}
@@ -147,7 +142,7 @@ function categGeneDeglutition(str){
 }
 
 async function fetchSheet(sheetName){
-  const url=WORKER_URL+'?sheet='+encodeURIComponent(sheetName)+'&spreadsheetId='+encodeURIComponent(SHEET_ID);
+  const url=WORKER_URL+'?sheet='+encodeURIComponent(sheetName);
   const r=await fetch(url);
   if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error((e.error&&e.error.message)||'Erreur '+r.status);}
   const d=await r.json();
